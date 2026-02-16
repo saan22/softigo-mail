@@ -1,0 +1,12 @@
+{
+    "name": "softigo-mail-root",
+    "version": "1.0.0",
+    "description": "Softigo Mail Root Orchestrator",
+    "scripts": {
+        "dev": "concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+        "install-all": "npm install --prefix backend && npm install --prefix frontend"
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2"
+    }
+}

@@ -1,0 +1,29 @@
+{
+    "name": "softigo-mail-backend",
+    "version": "1.0.0",
+    "description": "Softigo Mail Backend Service",
+    "main": "dist/app.js",
+    "scripts": {
+        "dev": "ts-node src/app.ts",
+        "build": "tsc",
+        "test:imap": "ts-node tests/imap_test.ts",
+        "test:smtp": "ts-node tests/smtp_test.ts",
+        "test:actions": "ts-node tests/mail_actions_test.ts"
+    },
+    "dependencies": {
+        "@fastify/cors": "^11.2.0",
+        "@fastify/multipart": "^9.4.0",
+        "dotenv": "^16.4.5",
+        "fastify": "^5.7.4",
+        "imapflow": "^1.0.155",
+        "mailparser": "^3.9.3",
+        "nodemailer": "^6.10.1"
+    },
+    "devDependencies": {
+        "@types/mailparser": "^3.4.6",
+        "@types/node": "^20.11.24",
+        "@types/nodemailer": "^6.4.22",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.3.3"
+    }
+}
