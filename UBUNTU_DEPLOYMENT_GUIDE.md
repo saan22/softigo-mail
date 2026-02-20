@@ -4,6 +4,8 @@ Bu rehber, Softigo Mail projesini Ubuntu 22.04 tabanlı bir VDS sunucusuna en sa
 
 ## 1. Hazırlık (Sunucu Kurulumu)
 
+b03d1ef8bc57NERZEN
+
 Sunucunuza SSH ile bağlandıktan sonra sistem güncellemelerini yapın ve gerekli araçları kurun:
 
 ```bash
@@ -58,7 +60,7 @@ Sunucunuzda **Nginx Proxy Manager** (Daha modüler ve görsel yönetim için) ku
 sudo apt install nginx certbot python3-certbot-nginx -y
 ```
 
-### Örnek Nginx Config (`/etc/nginx/sites-available/webmail`):
+### Örnek Nginx Config (`/etc/nginx/sites-available/webmail`)
 
 ```nginx
 server {
@@ -87,6 +89,7 @@ server {
 
 ---
 **Not:** Güvenlik için Ubuntu Güvenlik Duvarı'nı (UFW) yapılandırmayı unutmayın:
+
 ```bash
 sudo ufw allow 22,80,443/tcp
 sudo ufw enable
