@@ -3,14 +3,13 @@
         "target": "ESNext",
         "module": "CommonJS",
         "outDir": "./dist",
-        "rootDir": "./",
+        "rootDir": "./src",
         "strict": true,
         "esModuleInterop": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true
     },
     "include": [
-        "src/**/*",
-        "tests/**/*"
+        "src/**/*"
     ]
 }
