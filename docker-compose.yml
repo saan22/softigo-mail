@@ -7,7 +7,7 @@ services:
     restart: always
     environment:
       - PORT=3005
-      - IMAP_HOST=mail.softigo.com # Varsayılan, giriş ekranında değiştirilebilir
+      - IMAP_HOST=mail.softigo.com
       - IMAP_PORT=993
       - IMAP_SECURE=true
       - ENCRYPTION_KEY=Nerzen_Bilisim_Sistemleri_2026_Key_32
@@ -20,7 +20,7 @@ services:
     build:
       context: ./frontend
       args:
-        - NEXT_PUBLIC_API_URL=http://141.98.50.39:3005
+        - NEXT_PUBLIC_API_URL=http://email.softigo.com.tr:3005
     restart: always
     ports:
       - "3000:3000"
