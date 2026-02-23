@@ -386,56 +386,72 @@ export default function Dashboard() {
         return mappings[type] || { label: name, icon: <Mail size={18} /> };
     };
 
+    // ── Mobile UI Helpers ───────────────────────────────────────────────
+    const AVATAR_COLORS = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#F7B731', '#A29BFE', '#FD79A8', '#55EFC4', '#FDCB6E', '#74B9FF', '#E17055'];
+    const getAvatarColor = (text: string) => AVATAR_COLORS[(text.charCodeAt(0) || 65) % AVATAR_COLORS.length];
+    const getInitials = (raw: string) => {
+        const clean = raw.replace(/<[^>]+>/g, '').trim();
+        const parts = clean.split(/[\s@]/);
+        if (parts.length >= 2 && parts[0] && parts[1]) return (parts[0][0] + parts[1][0]).toUpperCase();
+        return clean.substring(0, 2).toUpperCase() || 'MA';
+    };
+    const getDisplayName = (raw: string) => {
+        const m = raw.match(/^"?([^"<]+)"?\s*(?:<.*>)?$/);
+        return m ? m[1].trim() : raw.split('@')[0];
+    };
+    const formatMailDate = (dateStr: string) => {
+        const d = new Date(dateStr), now = new Date();
+        if (d.toDateString() === now.toDateString()) return d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+        if (d.getFullYear() === now.getFullYear()) return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
+        return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: '2-digit' });
+    };
+    const getFolderPath = (type: string) => folders.find(f => f.type === type)?.path || type;
+    const unreadCount = mails.filter(m => !m.flags?.includes('\\Seen')).length;
+    // ────────────────────────────────────────────────────────────────────
+
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh', backgroundColor: '#FFFFFF', overflow: 'hidden' }}>
-            {/* TOOLBAR */}
-            <header style={{ height: isMobile ? '52px' : '42px', backgroundColor: '#0057B7', color: 'white', display: 'flex', alignItems: 'center', padding: '0 16px', fontSize: '12px', zIndex: 100, flexShrink: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
-                    {/* Mobile back button */}
-                    {isMobile && mobileView === 'detail' && (
-                        <button
-                            onClick={() => { setMobileView('list'); setSelectedMail(null); }}
-                            style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', cursor: 'pointer', padding: '6px 10px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: 600 }}
-                        >
-                            <ChevronLeft size={16} /> Geri
+        <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh', backgroundColor: isMobile ? '#F2F2F7' : '#FFFFFF', overflow: 'hidden' }}>
+
+            {/* ── MOBILE HEADER (list/sidebar) ── */}
+            {isMobile && mobileView !== 'detail' && (
+                <header style={{ height: '60px', backgroundColor: 'white', borderBottom: '1px solid #E5E5EA', display: 'flex', alignItems: 'center', padding: '0 20px', justifyContent: 'space-between', flexShrink: 0, zIndex: 100 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <img src="/logo.png" alt="Softigo" style={{ height: '28px' }} />
+                        <span style={{ fontWeight: 700, fontSize: '20px', color: '#1C1C1E', letterSpacing: '-0.3px' }}>Softigo Mail</span>
+                    </div>
+                    <button onClick={() => setIsComposeOpen(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <Search size={22} color="#007AFF" />
+                    </button>
+                </header>
+            )}
+
+            {/* ── MOBILE HEADER (detail view) ── */}
+            {isMobile && mobileView === 'detail' && (
+                <header style={{ height: '52px', backgroundColor: '#0057B7', color: 'white', display: 'flex', alignItems: 'center', padding: '0 16px', justifyContent: 'space-between', flexShrink: 0, zIndex: 100 }}>
+                    <button onClick={() => { setMobileView('list'); setSelectedMail(null); }} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', cursor: 'pointer', padding: '6px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px', fontWeight: 600 }}>
+                        <ChevronLeft size={18} /> Geri
+                    </button>
+                    <span style={{ fontWeight: 600, fontSize: '15px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '55%' }}>{selectedMail?.subject || '(Konu Yok)'}</span>
+                    {selectedMail && (
+                        <button onClick={() => selectedMail && handleReplyMail(selectedMail)} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', cursor: 'pointer', padding: '6px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px', fontWeight: 600 }}>
+                            <Reply size={15} /> Yanıtla
                         </button>
                     )}
-                    {isMobile && mobileView === 'list' && (
-                        <button
-                            onClick={() => setMobileView('sidebar')}
-                            style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', cursor: 'pointer', padding: '6px', borderRadius: '6px', display: 'flex', alignItems: 'center' }}
-                        >
-                            <Menu size={18} />
-                        </button>
-                    )}
-                    {(!isMobile || mobileView !== 'detail') && (
-                        <span style={{ fontWeight: 700, fontSize: isMobile ? '15px' : '14px' }}>Softigo BulutMail</span>
-                    )}
-                    {isMobile && mobileView === 'detail' && selectedMail && (
-                        <span style={{ fontWeight: 600, fontSize: '14px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{selectedMail.subject || '(Konu Yok)'}</span>
-                    )}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    {!isMobile && <span style={{ fontSize: '12px' }}>{userEmail}</span>}
-                    {isMobile && mobileView !== 'detail' && (
-                        <button
-                            onClick={() => setIsComposeOpen(true)}
-                            style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', cursor: 'pointer', padding: '6px 12px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: 600 }}
-                        >
-                            <Send size={14} /> Yaz
-                        </button>
-                    )}
-                    {isMobile && mobileView === 'detail' && selectedMail && (
-                        <button
-                            onClick={() => selectedMail && handleReplyMail(selectedMail)}
-                            style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', cursor: 'pointer', padding: '6px 10px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: 600 }}
-                        >
-                            <Reply size={14} /> Yanıtla
-                        </button>
-                    )}
-                    <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '4px' }}><LogOut size={16} /></button>
-                </div>
-            </header>
+                </header>
+            )}
+
+            {/* ── DESKTOP HEADER ── */}
+            {!isMobile && (
+                <header style={{ height: '42px', backgroundColor: '#0057B7', color: 'white', display: 'flex', alignItems: 'center', padding: '0 16px', fontSize: '12px', zIndex: 100, flexShrink: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
+                        <span style={{ fontWeight: 600, fontSize: '14px' }}>Softigo BulutMail</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span>{userEmail}</span>
+                        <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}><LogOut size={16} /></button>
+                    </div>
+                </header>
+            )}
 
             {/* ACTION BAR - Desktop Only */}
             {!isMobile && <div style={{ height: '48px', backgroundColor: 'white', borderBottom: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', padding: '0 16px', gap: '8px', flexShrink: 0 }}>
@@ -543,13 +559,11 @@ export default function Dashboard() {
 
             {/* MOBILE SEARCH BAR */}
             {isMobile && mobileView === 'list' && (
-                <div style={{ padding: '8px 12px', backgroundColor: 'white', borderBottom: '1px solid #E2E8F0', flexShrink: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '8px 12px' }}>
-                        <Search size={16} style={{ color: '#94A3B8' }} />
-                        <input type="text" placeholder="E-postalarda ara..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ border: 'none', background: 'none', outline: 'none', marginLeft: '8px', fontSize: '14px', width: '100%', color: '#1E293B' }} />
-                        <button onClick={() => fetchMails(selectedFolder)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8', display: 'flex' }}>
-                            <RefreshCw size={16} />
-                        </button>
+                <div style={{ padding: '10px 16px', backgroundColor: 'white', borderBottom: '1px solid #E5E5EA', flexShrink: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#F2F2F7', borderRadius: '10px', padding: '8px 14px', gap: '8px' }}>
+                        <Search size={16} style={{ color: '#8E8E93', flexShrink: 0 }} />
+                        <input type="text" placeholder="Ara..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ border: 'none', background: 'none', outline: 'none', fontSize: '15px', width: '100%', color: '#1C1C1E' }} />
+                        {searchTerm && <button onClick={() => setSearchTerm('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#8E8E93', padding: 0, display: 'flex' }}><X size={16} /></button>}
                     </div>
                 </div>
             )}
@@ -602,50 +616,107 @@ export default function Dashboard() {
                 {/* COL 2: MAIL LIST */}
                 <div style={{
                     width: isMobile ? '100%' : '350px',
-                    backgroundColor: 'white',
+                    backgroundColor: isMobile ? '#F2F2F7' : 'white',
                     borderRight: isMobile ? 'none' : '1px solid #E2E8F0',
                     overflowY: 'auto',
                     display: isMobile ? (mobileView === 'list' ? 'block' : 'none') : 'block'
                 }}>
                     {loading ? (
-                        <div style={{ padding: '40px', textAlign: 'center', color: '#94A3B8', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-                            <RefreshCw size={24} style={{ opacity: 0.4, animation: 'spin 1s linear infinite' }} />
+                        <div style={{ padding: '60px 20px', textAlign: 'center', color: '#8E8E93', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                            <RefreshCw size={24} style={{ opacity: 0.4 }} />
                             Yükleniyor...
                         </div>
                     ) : filteredMails.length === 0 ? (
-                        <div style={{ padding: '60px 20px', textAlign: 'center', color: '#94A3B8' }}>
-                            <Mail size={40} style={{ opacity: 0.2, margin: '0 auto 12px', display: 'block' }} />
-                            <p style={{ fontWeight: 500 }}>İleti yok</p>
+                        <div style={{ padding: '80px 20px', textAlign: 'center', color: '#8E8E93' }}>
+                            <Mail size={48} style={{ opacity: 0.15, margin: '0 auto 16px', display: 'block' }} />
+                            <p style={{ fontWeight: 500, fontSize: '16px' }}>İleti yok</p>
+                        </div>
+                    ) : isMobile ? (
+                        // ── MOBILE STYLED MAIL LIST ──
+                        <div style={{ backgroundColor: 'white', margin: '0', borderRadius: '0' }}>
+                            {/* Unread section header */}
+                            {unreadCount > 0 && (
+                                <div style={{ padding: '14px 20px 6px', fontSize: '12px', fontWeight: 700, color: '#8E8E93', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
+                                    Okunmamış
+                                </div>
+                            )}
+                            {filteredMails.filter(m => !m.flags?.includes('\\Seen')).map(mail => (
+                                <div key={`unread-${mail.uid}`} onClick={() => handleMailSelect(mail)} style={{
+                                    display: 'flex', alignItems: 'center', padding: '12px 20px', gap: '14px',
+                                    borderBottom: '1px solid #F2F2F7', cursor: 'pointer', backgroundColor: 'white'
+                                }}>
+                                    <div style={{ width: 46, height: 46, borderRadius: '50%', backgroundColor: getAvatarColor(mail.from || ''), display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 6px rgba(0,0,0,0.12)' }}>
+                                        <span style={{ color: 'white', fontWeight: 700, fontSize: '16px', letterSpacing: '0.5px' }}>{getInitials(mail.from || 'U')}</span>
+                                    </div>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
+                                            <span style={{ fontSize: '15px', fontWeight: 700, color: '#1C1C1E', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '65%' }}>{getDisplayName(mail.from || '')}</span>
+                                            <span style={{ fontSize: '12px', color: '#8E8E93', flexShrink: 0, marginLeft: '8px' }}>{formatMailDate(mail.date)}</span>
+                                        </div>
+                                        <div style={{ fontSize: '14px', fontWeight: 600, color: '#1C1C1E', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: '2px' }}>{mail.subject || '(Konu Yok)'}</div>
+                                        <div style={{ fontSize: '13px', color: '#8E8E93', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Görüntülemek için dokunun...</div>
+                                    </div>
+                                    <ChevronRight size={16} color="#C7C7CC" style={{ flexShrink: 0 }} />
+                                </div>
+                            ))}
+
+                            {/* Read section */}
+                            {filteredMails.some(m => m.flags?.includes('\\Seen')) && (
+                                <div style={{ padding: '14px 20px 6px', fontSize: '12px', fontWeight: 700, color: '#8E8E93', letterSpacing: '0.4px', textTransform: 'uppercase' }}>
+                                    Okunmuş
+                                </div>
+                            )}
+                            {filteredMails.filter(m => m.flags?.includes('\\Seen')).map(mail => (
+                                <div key={`read-${mail.uid}`} onClick={() => handleMailSelect(mail)} style={{
+                                    display: 'flex', alignItems: 'center', padding: '12px 20px', gap: '14px',
+                                    borderBottom: '1px solid #F2F2F7', cursor: 'pointer', backgroundColor: 'white'
+                                }}>
+                                    <div style={{ width: 46, height: 46, borderRadius: '50%', backgroundColor: '#E5E5EA', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                        <span style={{ color: '#8E8E93', fontWeight: 600, fontSize: '16px' }}>{getInitials(mail.from || 'U')}</span>
+                                    </div>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '2px' }}>
+                                            <span style={{ fontSize: '15px', fontWeight: 500, color: '#3A3A3C', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '65%' }}>{getDisplayName(mail.from || '')}</span>
+                                            <span style={{ fontSize: '12px', color: '#8E8E93', flexShrink: 0, marginLeft: '8px' }}>{formatMailDate(mail.date)}</span>
+                                        </div>
+                                        <div style={{ fontSize: '14px', fontWeight: 400, color: '#3A3A3C', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: '2px' }}>{mail.subject || '(Konu Yok)'}</div>
+                                        <div style={{ fontSize: '13px', color: '#8E8E93', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Görüntülemek için dokunun...</div>
+                                    </div>
+                                    <ChevronRight size={16} color="#C7C7CC" style={{ flexShrink: 0 }} />
+                                </div>
+                            ))}
+
+                            {/* Unread count bar */}
+                            {unreadCount > 0 && (
+                                <div style={{ padding: '16px 20px', textAlign: 'center', fontSize: '14px', color: '#007AFF', fontWeight: 500 }}>
+                                    {unreadCount} okunmamış
+                                </div>
+                            )}
                         </div>
                     ) : (
+                        // ── DESKTOP MAIL LIST ──
                         filteredMails.map(mail => (
                             <div key={mail.uid} onClick={() => handleMailSelect(mail)} style={{
-                                padding: isMobile ? '14px 16px' : '12px 16px',
+                                padding: '12px 16px',
                                 borderBottom: '1px solid #F1F5F9', cursor: 'pointer',
                                 backgroundColor: selectedMail?.uid === mail.uid ? '#EFF6FF' : 'transparent',
                                 borderLeft: mail.flags?.includes('\\Seen') ? '3px solid transparent' : '3px solid #0057B7',
                                 display: 'flex', gap: '12px', alignItems: 'flex-start',
                                 transition: 'background-color 0.1s'
                             }}>
-                                {!isMobile && (
-                                    <div onClick={(e) => toggleSelectMail(e, mail.uid)} style={{ marginTop: '2px', cursor: 'pointer' }}>
-                                        {selectedUids.includes(mail.uid) ? (
-                                            <CheckSquare size={16} style={{ color: '#0057B7' }} />
-                                        ) : (
-                                            <Square size={16} style={{ color: '#CBD5E1' }} />
-                                        )}
-                                    </div>
-                                )}
+                                <div onClick={(e) => toggleSelectMail(e, mail.uid)} style={{ marginTop: '2px', cursor: 'pointer' }}>
+                                    {selectedUids.includes(mail.uid) ? (
+                                        <CheckSquare size={16} style={{ color: '#0057B7' }} />
+                                    ) : (
+                                        <Square size={16} style={{ color: '#CBD5E1' }} />
+                                    )}
+                                </div>
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                        <span style={{ fontSize: isMobile ? '15px' : '14px', fontWeight: mail.flags?.includes('\\Seen') ? 500 : 800, color: '#1E293B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '60%' }}>{mail.from}</span>
+                                        <span style={{ fontSize: '14px', fontWeight: mail.flags?.includes('\\Seen') ? 500 : 800, color: '#1E293B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '60%' }}>{mail.from}</span>
                                         <span style={{ fontSize: '12px', color: '#94A3B8', fontWeight: 400, flexShrink: 0 }}>{new Date(mail.date).toLocaleDateString('tr-TR')}</span>
                                     </div>
-                                    <div style={{ fontSize: isMobile ? '14px' : '13px', fontWeight: mail.flags?.includes('\\Seen') ? 400 : 600, color: '#334155', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginBottom: isMobile ? '4px' : '0' }}>{mail.subject || '(Konu Yok)'}</div>
-                                    {isMobile && <div style={{ fontSize: '12px', color: '#94A3B8', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                                        <ChevronRight size={12} />
-                                        <span>Görüntüle</span>
-                                    </div>}
+                                    <div style={{ fontSize: '13px', fontWeight: mail.flags?.includes('\\Seen') ? 400 : 600, color: '#334155', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{mail.subject || '(Konu Yok)'}</div>
                                 </div>
                             </div>
                         ))
@@ -789,70 +860,44 @@ export default function Dashboard() {
                 </div>
             </main>
 
-            {/* MOBILE BOTTOM NAV */}
+            {/* ── MOBILE BOTTOM NAV ── */}
             {isMobile && (
-                <nav style={{
-                    height: '64px',
-                    backgroundColor: 'white',
-                    borderTop: '1px solid #E2E8F0',
-                    display: 'flex',
-                    alignItems: 'stretch',
-                    flexShrink: 0,
-                    boxShadow: '0 -2px 8px rgba(0,0,0,0.06)'
-                }}>
-                    <button onClick={() => setMobileView('sidebar')} style={{
-                        flex: 1, background: 'none', border: 'none', cursor: 'pointer',
-                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '3px',
-                        color: mobileView === 'sidebar' ? '#0057B7' : '#94A3B8',
-                        borderTop: mobileView === 'sidebar' ? '2px solid #0057B7' : '2px solid transparent',
-                        fontSize: '10px', fontWeight: 600, paddingTop: '2px'
-                    }}>
-                        <Menu size={20} />
-                        Klasörler
-                    </button>
-                    <button onClick={() => setMobileView('list')} style={{
-                        flex: 1, background: 'none', border: 'none', cursor: 'pointer',
-                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '3px',
-                        color: mobileView === 'list' ? '#0057B7' : '#94A3B8',
-                        borderTop: mobileView === 'list' ? '2px solid #0057B7' : '2px solid transparent',
-                        fontSize: '10px', fontWeight: 600, paddingTop: '2px'
-                    }}>
-                        <Inbox size={20} />
-                        E-Postalar
-                    </button>
-                    <button onClick={() => setIsComposeOpen(true)} style={{
-                        flex: 1, background: 'none', border: 'none', cursor: 'pointer',
-                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '3px',
-                        color: '#0057B7',
-                        borderTop: '2px solid transparent',
-                        fontSize: '10px', fontWeight: 600, paddingTop: '2px'
-                    }}>
-                        <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#0057B7', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '-6px', boxShadow: '0 2px 8px rgba(0,87,183,0.4)' }}>
-                            <Send size={16} color="white" />
-                        </div>
-                        Oluştur
-                    </button>
-                    <button onClick={() => selectedMail && setMobileView('detail')} style={{
-                        flex: 1, background: 'none', border: 'none', cursor: 'pointer',
-                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '3px',
-                        color: mobileView === 'detail' ? '#0057B7' : '#94A3B8',
-                        borderTop: mobileView === 'detail' ? '2px solid #0057B7' : '2px solid transparent',
-                        fontSize: '10px', fontWeight: 600, paddingTop: '2px',
-                        opacity: selectedMail ? 1 : 0.4
-                    }}>
-                        <Mail size={20} />
-                        İleti
-                    </button>
-                    <button onClick={handleLogout} style={{
-                        flex: 1, background: 'none', border: 'none', cursor: 'pointer',
-                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '3px',
-                        color: '#94A3B8',
-                        borderTop: '2px solid transparent',
-                        fontSize: '10px', fontWeight: 600, paddingTop: '2px'
-                    }}>
-                        <LogOut size={20} />
-                        Çıkış
-                    </button>
+                <nav style={{ height: '70px', backgroundColor: 'white', borderTop: '1px solid #E5E5EA', display: 'flex', alignItems: 'stretch', flexShrink: 0, boxShadow: '0 -1px 0 rgba(0,0,0,0.08)' }}>
+                    {[
+                        { icon: Inbox, label: 'Gelen', type: 'INBOX' },
+                        { icon: Send, label: 'Giden', type: 'SENT' },
+                        { icon: FileText, label: 'Taslak', type: 'DRAFTS' },
+                        { icon: Trash2, label: 'Çöp', type: 'TRASH' },
+                        { icon: Menu, label: 'Menü', type: 'MENU' },
+                    ].map(item => {
+                        const folderPath = item.type !== 'MENU' ? getFolderPath(item.type) : '';
+                        const isActive = item.type === 'MENU'
+                            ? mobileView === 'sidebar'
+                            : selectedFolder === folderPath && mobileView === 'list';
+                        const badge = item.type === 'INBOX' ? unreadCount : 0;
+                        return (
+                            <button key={item.label} onClick={() => {
+                                if (item.type === 'MENU') { setMobileView('sidebar'); }
+                                else { setSelectedFolder(folderPath); setMobileView('list'); }
+                            }} style={{
+                                flex: 1, background: 'none', border: 'none', cursor: 'pointer',
+                                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '3px',
+                                color: isActive ? '#007AFF' : '#8E8E93',
+                                fontSize: '10px', fontWeight: isActive ? 600 : 400,
+                                position: 'relative', paddingBottom: '4px'
+                            }}>
+                                <div style={{ position: 'relative' }}>
+                                    <item.icon size={24} />
+                                    {badge > 0 && (
+                                        <span style={{ position: 'absolute', top: '-6px', right: '-10px', backgroundColor: '#FF3B30', color: 'white', borderRadius: '10px', minWidth: '18px', height: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: 700, padding: '0 4px' }}>
+                                            {badge > 99 ? '99+' : badge}
+                                        </span>
+                                    )}
+                                </div>
+                                {item.label}
+                            </button>
+                        );
+                    })}
                 </nav>
             )}
 
