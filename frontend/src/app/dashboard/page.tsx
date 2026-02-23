@@ -811,19 +811,25 @@ export default function Dashboard() {
                                     <div style={{
                                         height: '52px', backgroundColor: '#0057B7', color: 'white',
                                         display: 'flex', alignItems: 'center', padding: '0 16px',
-                                        justifyContent: 'space-between', flexShrink: 0
+                                        justifyContent: 'space-between', flexShrink: 0,
+                                        paddingTop: 'env(safe-area-inset-top)'
                                     }}>
                                         <span style={{ fontSize: '15px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '75%' }}>
                                             {selectedMail.subject || '(Konu Yok)'}
                                         </span>
                                         <button
-                                            onClick={() => setIsIframeFullscreen(false)}
+                                            onClick={() => {
+                                                setIsIframeFullscreen(false);
+                                                // Zoom'u kapat, orijinal viewport'a dön
+                                                const vp = document.querySelector('meta[name=viewport]');
+                                                if (vp) vp.setAttribute('content', 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover');
+                                            }}
                                             style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', borderRadius: '8px', padding: '6px 14px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                                         >
                                             <X size={16} /> Kapat
                                         </button>
                                     </div>
-                                    {/* Fullscreen iframe */}
+                                    {/* Fullscreen iframe - zoom aktif */}
                                     <iframe
                                         srcDoc={`
                                             <html>
@@ -836,6 +842,11 @@ export default function Dashboard() {
                                             </html>
                                         `}
                                         style={{ flex: 1, border: 'none', width: '100%' }}
+                                        onLoad={() => {
+                                            // Zoom'u aç: tam ekrana geçince
+                                            const vp = document.querySelector('meta[name=viewport]');
+                                            if (vp) vp.setAttribute('content', 'width=device-width, initial-scale=1, user-scalable=yes, viewport-fit=cover');
+                                        }}
                                     />
                                 </div>
                             )}
@@ -980,7 +991,35 @@ export default function Dashboard() {
                 </nav>
             )}
 
-            {/* COMPOSE MODAL */}
+            {/* ── MOBILE COMPOSE FAB ── */}
+            {isMobile && !isIframeFullscreen && (
+                <button
+                    onClick={() => setIsComposeOpen(true)}
+                    style={{
+                        position: 'fixed',
+                        right: '20px',
+                        bottom: '86px',  // bottom nav (70px) + 16px margin
+                        width: '56px',
+                        height: '56px',
+                        borderRadius: '28px',
+                        backgroundColor: '#007AFF',
+                        color: 'white',
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: '0 4px 16px rgba(0, 122, 255, 0.45)',
+                        zIndex: 100,
+                        fontSize: '28px',
+                        fontWeight: 300,
+                        lineHeight: 1
+                    }}
+                >
+                    <Mail size={24} />
+                </button>
+            )}
+
             <AnimatePresence>
                 {isComposeOpen && (
                     <motion.div
