@@ -729,7 +729,8 @@ export default function Dashboard() {
                     backgroundColor: 'white',
                     display: isMobile ? (mobileView === 'detail' ? 'flex' : 'none') : 'flex',
                     flexDirection: 'column',
-                    width: isMobile ? '100%' : 'auto'
+                    width: isMobile ? '100%' : 'auto',
+                    overflowY: isMobile ? 'auto' : 'hidden'  // mobile: full scroll
                 }}>
                     {selectedMail ? (
                         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -743,7 +744,8 @@ export default function Dashboard() {
                                     </div>
                                 </div>
                             </div>
-                            <div style={{ flex: 1, padding: '24px', overflowY: 'auto' }}>
+                            {/* Mail body */}
+                            <div style={{ flex: isMobile ? 'none' : 1, padding: isMobile ? '16px' : '24px', overflowY: isMobile ? 'visible' : 'auto' }}>
                                 {selectedMail.loading ? (
                                     <div style={{ textAlign: 'center', padding: '40px' }}>Yükleniyor...</div>
                                 ) : (
@@ -767,54 +769,75 @@ export default function Dashboard() {
                                                <body>${selectedMail.body}</body>
                                             </html>
                                         `}
-                                        style={{ width: '100%', height: 'calc(100% - 60px)', border: 'none', borderRadius: '8px', backgroundColor: 'white' }}
+                                        style={{
+                                            width: '100%',
+                                            // Mobile: use minHeight so content determines height
+                                            // Desktop: use calc to fill area
+                                            height: isMobile ? '320px' : 'calc(100% - 60px)',
+                                            minHeight: isMobile ? '200px' : 'auto',
+                                            border: 'none',
+                                            borderRadius: '8px',
+                                            backgroundColor: 'white'
+                                        }}
                                     />
                                 )}
                             </div>
 
-                            {/* ATTACHMENTS DISPLAY */}
+                            {/* ATTACHMENTS */}
                             {!selectedMail.loading && selectedMail.attachments && selectedMail.attachments.length > 0 && (
-                                <div style={{ padding: '16px 24px', borderTop: '1px solid #F1F5F9', backgroundColor: '#F8FAFC' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                                        <Paperclip size={16} style={{ color: '#64748B' }} />
-                                        <span style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>EKLER ({selectedMail.attachments.length})</span>
+                                <div style={{
+                                    padding: isMobile ? '12px 16px' : '16px 24px',
+                                    borderTop: '1px solid #F1F5F9',
+                                    backgroundColor: '#F8FAFC',
+                                    flexShrink: 0
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                                        <Paperclip size={14} style={{ color: '#64748B' }} />
+                                        <span style={{ fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px' }}>EKLER ({selectedMail.attachments.length})</span>
                                     </div>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
-                                        {selectedMail.attachments.map((att: any, idx: number) => (
-                                            <a
-                                                key={idx}
-                                                href={`${process.env.NEXT_PUBLIC_API_URL}/api/mails/${selectedMail.uid}/attachments/${encodeURIComponent(att.filename)}?folder=${encodeURIComponent(selectedFolder)}&token=${encodeURIComponent(localStorage.getItem("softigo_token") || "")}`}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                onClick={(e) => {
-                                                    if (!confirm(`"${att.filename}" dosyasını indirmek istiyor musunuz?`)) {
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-                                                style={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    gap: '10px',
-                                                    padding: '8px 12px',
-                                                    backgroundColor: 'white',
-                                                    border: '1px solid #E2E8F0',
-                                                    borderRadius: '6px',
-                                                    textDecoration: 'none',
-                                                    color: '#1E293B',
-                                                    transition: 'all 0.2s'
-                                                }}
-                                                onMouseEnter={(e) => e.currentTarget.style.borderColor = '#0057B7'}
-                                                onMouseLeave={(e) => e.currentTarget.style.borderColor = '#E2E8F0'}
-                                            >
-                                                <div style={{ color: '#0057B7' }}><FileText size={18} /></div>
-                                                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                                    <span style={{ fontSize: '13px', fontWeight: 600, maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{att.filename}</span>
-                                                    <span style={{ fontSize: '11px', color: '#94A3B8' }}>{(att.size / 1024).toFixed(1)} KB</span>
-                                                </div>
-                                                <Download size={14} style={{ color: '#94A3B8', marginLeft: '4px' }} />
-                                            </a>
-                                        ))}
-                                    </div>
+                                    {/* Mobile: compact horizontal chips */}
+                                    {isMobile ? (
+                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                            {selectedMail.attachments.map((att: any, idx: number) => (
+                                                <a
+                                                    key={idx}
+                                                    href={`${process.env.NEXT_PUBLIC_API_URL}/api/mails/${selectedMail.uid}/attachments/${encodeURIComponent(att.filename)}?folder=${encodeURIComponent(selectedFolder)}&token=${encodeURIComponent(localStorage.getItem("softigo_token") || "")}`}
+                                                    target="_blank" rel="noopener noreferrer"
+                                                    onClick={(e) => { if (!confirm(`"${att.filename}" dosyasını indirmek istiyor musunuz?`)) e.preventDefault(); }}
+                                                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', backgroundColor: 'white', border: '1px solid #E2E8F0', borderRadius: '8px', textDecoration: 'none', color: '#1E293B' }}
+                                                >
+                                                    <FileText size={16} style={{ color: '#0057B7', flexShrink: 0 }} />
+                                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                                        <div style={{ fontSize: '13px', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{att.filename}</div>
+                                                        <div style={{ fontSize: '11px', color: '#94A3B8' }}>{(att.size / 1024).toFixed(1)} KB</div>
+                                                    </div>
+                                                    <Download size={16} style={{ color: '#007AFF', flexShrink: 0 }} />
+                                                </a>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        // Desktop: wrap cards
+                                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                                            {selectedMail.attachments.map((att: any, idx: number) => (
+                                                <a
+                                                    key={idx}
+                                                    href={`${process.env.NEXT_PUBLIC_API_URL}/api/mails/${selectedMail.uid}/attachments/${encodeURIComponent(att.filename)}?folder=${encodeURIComponent(selectedFolder)}&token=${encodeURIComponent(localStorage.getItem("softigo_token") || "")}`}
+                                                    target="_blank" rel="noopener noreferrer"
+                                                    onClick={(e) => { if (!confirm(`"${att.filename}" dosyasını indirmek istiyor musunuz?`)) e.preventDefault(); }}
+                                                    style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', backgroundColor: 'white', border: '1px solid #E2E8F0', borderRadius: '6px', textDecoration: 'none', color: '#1E293B', transition: 'all 0.2s' }}
+                                                    onMouseEnter={(e) => e.currentTarget.style.borderColor = '#0057B7'}
+                                                    onMouseLeave={(e) => e.currentTarget.style.borderColor = '#E2E8F0'}
+                                                >
+                                                    <div style={{ color: '#0057B7' }}><FileText size={18} /></div>
+                                                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                        <span style={{ fontSize: '13px', fontWeight: 600, maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{att.filename}</span>
+                                                        <span style={{ fontSize: '11px', color: '#94A3B8' }}>{(att.size / 1024).toFixed(1)} KB</span>
+                                                    </div>
+                                                    <Download size={14} style={{ color: '#94A3B8', marginLeft: '4px' }} />
+                                                </a>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
