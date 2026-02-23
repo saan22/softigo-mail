@@ -410,7 +410,7 @@ export default function Dashboard() {
     // ────────────────────────────────────────────────────────────────────
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: '100vh', backgroundColor: isMobile ? '#F2F2F7' : '#FFFFFF', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: 'var(--app-height, 100vh)', backgroundColor: isMobile ? '#F2F2F7' : '#FFFFFF', overflow: 'hidden' }}>
 
             {/* ── MOBILE HEADER (list/sidebar) ── */}
             {isMobile && mobileView !== 'detail' && (

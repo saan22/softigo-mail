@@ -4,15 +4,17 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent; /* Mobil'de dokunma highlight kaldır */
+  -webkit-tap-highlight-color: transparent;
+  /* Mobil'de dokunma highlight kaldır */
 }
 
 html,
 body {
   width: 100%;
-  height: 100%;
+  /* iOS Safari fix: use JS-computed height instead of 100vh */
+  height: var(--app-height, 100vh);
+  max-height: var(--app-height, 100vh);
   overflow: hidden;
-  /* Mobil zoom'u engelle */
   touch-action: manipulation;
 }
 
