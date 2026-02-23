@@ -71,6 +71,7 @@ export default function Dashboard() {
     const [isMobile, setIsMobile] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [mobileView, setMobileView] = useState<'sidebar' | 'list' | 'detail'>('list');
+    const [isIframeFullscreen, setIsIframeFullscreen] = useState(false);
 
     useEffect(() => {
         const checkMobile = () => {
@@ -749,8 +750,9 @@ export default function Dashboard() {
                                 {selectedMail.loading ? (
                                     <div style={{ textAlign: 'center', padding: '40px' }}>Yükleniyor...</div>
                                 ) : (
-                                    <iframe
-                                        srcDoc={`
+                                    <>
+                                        <iframe
+                                            srcDoc={`
                                             <html>
                                                 <head>
                                                     <style>
@@ -769,21 +771,75 @@ export default function Dashboard() {
                                                <body>${selectedMail.body}</body>
                                             </html>
                                         `}
-                                        style={{
-                                            width: '100%',
-                                            // Mobile: use minHeight so content determines height
-                                            // Desktop: use calc to fill area
-                                            height: isMobile ? '320px' : 'calc(100% - 60px)',
-                                            minHeight: isMobile ? '200px' : 'auto',
-                                            border: 'none',
-                                            borderRadius: '8px',
-                                            backgroundColor: 'white'
-                                        }}
-                                    />
+                                            style={{
+                                                width: '100%',
+                                                height: isMobile ? '320px' : 'calc(100% - 60px)',
+                                                minHeight: isMobile ? '200px' : 'auto',
+                                                border: 'none',
+                                                borderRadius: '8px',
+                                                backgroundColor: 'white'
+                                            }}
+                                        />
+                                        {/* Mobile: tap to fullscreen button */}
+                                        {isMobile && (
+                                            <button
+                                                onClick={() => setIsIframeFullscreen(true)}
+                                                style={{
+                                                    marginTop: '8px', width: '100%', padding: '10px',
+                                                    backgroundColor: '#F0F7FF', border: '1px solid #DBEAFE',
+                                                    borderRadius: '8px', color: '#0057B7', fontSize: '13px',
+                                                    fontWeight: 600, cursor: 'pointer', display: 'flex',
+                                                    alignItems: 'center', justifyContent: 'center', gap: '6px'
+                                                }}
+                                            >
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" /></svg>
+                                                Tam Ekranda Oku
+                                            </button>
+                                        )}
+                                    </>
                                 )}
                             </div>
 
-                            {/* ATTACHMENTS */}
+                            {/* ── FULLSCREEN IFRAME OVERLAY (Mobile only) ── */}
+                            {isMobile && isIframeFullscreen && !selectedMail.loading && (
+                                <div style={{
+                                    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+                                    backgroundColor: 'white', zIndex: 9999,
+                                    display: 'flex', flexDirection: 'column'
+                                }}>
+                                    {/* Fullscreen header */}
+                                    <div style={{
+                                        height: '52px', backgroundColor: '#0057B7', color: 'white',
+                                        display: 'flex', alignItems: 'center', padding: '0 16px',
+                                        justifyContent: 'space-between', flexShrink: 0
+                                    }}>
+                                        <span style={{ fontSize: '15px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '75%' }}>
+                                            {selectedMail.subject || '(Konu Yok)'}
+                                        </span>
+                                        <button
+                                            onClick={() => setIsIframeFullscreen(false)}
+                                            style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', borderRadius: '8px', padding: '6px 14px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+                                        >
+                                            <X size={16} /> Kapat
+                                        </button>
+                                    </div>
+                                    {/* Fullscreen iframe */}
+                                    <iframe
+                                        srcDoc={`
+                                            <html>
+                                                <head><style>
+                                                    body { font-family: 'Inter', system-ui, sans-serif; line-height: 1.7; color: #1e293b; margin: 0; padding: 20px; background: white; }
+                                                    img { max-width: 100%; height: auto; }
+                                                    a { color: #0057b7; }
+                                                </style></head>
+                                                <body>${selectedMail.body}</body>
+                                            </html>
+                                        `}
+                                        style={{ flex: 1, border: 'none', width: '100%' }}
+                                    />
+                                </div>
+                            )}
+
                             {!selectedMail.loading && selectedMail.attachments && selectedMail.attachments.length > 0 && (
                                 <div style={{
                                     padding: isMobile ? '12px 16px' : '16px 24px',
