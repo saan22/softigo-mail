@@ -39,6 +39,7 @@ export default function Dashboard() {
         news: []
     });
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const fetchIdRef = useRef(0); // Race condition guard
 
     const handleNavigate = (direction: 'prev' | 'next') => {
         if (!selectedMail) return;
@@ -151,6 +152,7 @@ export default function Dashboard() {
     };
 
     const fetchMails = async (folder: string) => {
+        const requestId = ++fetchIdRef.current;
         setLoading(true);
         setSelectedMail(null);
         const token = localStorage.getItem("softigo_token");
@@ -161,7 +163,13 @@ export default function Dashboard() {
                 headers: { "Authorization": token || "" }
             });
             const result = await response.json() as any;
-            console.log("📬 Mail API yanıtı:", JSON.stringify(result).substring(0, 300));
+            console.log(`📬 [${requestId}] Klasör: ${folder} →`, JSON.stringify(result).substring(0, 200));
+
+            // Ignore stale responses
+            if (requestId !== fetchIdRef.current) {
+                console.log(`🚫 [${requestId}] Eski istek, yoksayıldı.`);
+                return;
+            }
 
             if (response.status === 401) {
                 localStorage.removeItem("softigo_token");
@@ -170,7 +178,6 @@ export default function Dashboard() {
                 return;
             }
 
-            // Both {success, data:[]} and direct array formats are accepted
             const mailsData = result.success === true
                 ? result.data
                 : Array.isArray(result.data)
@@ -182,7 +189,7 @@ export default function Dashboard() {
         } catch (error) {
             console.error("Mail çekme hatası:", error);
         } finally {
-            setLoading(false);
+            if (requestId === fetchIdRef.current) setLoading(false);
         }
     };
 
