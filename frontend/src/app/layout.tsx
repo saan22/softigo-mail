@@ -7,13 +7,12 @@ export const metadata: Metadata = {
     description: "Softigo Bilişim için özel tasarlanmış webmail istemcisi.",
 };
 
-// Tüm cihazlarda doğru ölçeklendirme için viewport ayarları
 export const viewport: Viewport = {
     width: "device-width",
     initialScale: 1,
     maximumScale: 1,
     userScalable: false,
-    viewportFit: "cover", // iPhone notch / Dynamic Island desteği
+    viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -27,6 +26,16 @@ export default function RootLayout({
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
                 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+                {/* iOS Safari 100vh fix */}
+                <script dangerouslySetInnerHTML={{
+                    __html: `
+                    function setAppHeight() {
+                        document.documentElement.style.setProperty('--app-height', window.innerHeight + 'px');
+                    }
+                    setAppHeight();
+                    window.addEventListener('resize', setAppHeight);
+                    window.addEventListener('orientationchange', function() { setTimeout(setAppHeight, 200); });
+                ` }} />
             </head>
             <body>
                 <ThemeProvider>
