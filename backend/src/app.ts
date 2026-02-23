@@ -9,7 +9,10 @@ import { simpleParser } from 'mailparser';
 
 dotenv.config();
 
-const fastify = Fastify({ logger: true });
+const fastify = Fastify({
+    logger: true,
+    bodyLimit: 52428800 // 50MB — ek dosya yüklemeleri için gerekli
+});
 
 // Register CORS
 fastify.register(cors, {
@@ -251,7 +254,12 @@ fastify.get('/api/mails', async (request, reply) => {
 // Register Multipart for File Uploads
 fastify.register(import('@fastify/multipart'), {
     attachFieldsToBody: true,
-    limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+    limits: {
+        fileSize: 25 * 1024 * 1024,  // 25MB per file
+        fieldSize: 5 * 1024 * 1024,  // 5MB per text field (html body)
+        files: 10,                    // maks 10 dosya
+        fieldNameSize: 500
+    }
 });
 
 // Send Mail API
