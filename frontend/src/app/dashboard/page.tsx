@@ -159,17 +159,24 @@ export default function Dashboard() {
                 headers: { "Authorization": token || "" }
             });
             const result = await response.json() as any;
-            if (result.success) {
-                setMails(result.data);
-            } else {
-                if (response.status === 401) {
-                    localStorage.removeItem("softigo_token");
-                    localStorage.removeItem("softigo_user");
-                    window.location.href = "/";
-                } else {
-                    setMails([]);
-                }
+            console.log("📬 Mail API yanıtı:", JSON.stringify(result).substring(0, 300));
+
+            if (response.status === 401) {
+                localStorage.removeItem("softigo_token");
+                localStorage.removeItem("softigo_user");
+                window.location.href = "/";
+                return;
             }
+
+            // Both {success, data:[]} and direct array formats are accepted
+            const mailsData = result.success === true
+                ? result.data
+                : Array.isArray(result.data)
+                    ? result.data
+                    : Array.isArray(result)
+                        ? result
+                        : [];
+            setMails(mailsData);
         } catch (error) {
             console.error("Mail çekme hatası:", error);
         } finally {
