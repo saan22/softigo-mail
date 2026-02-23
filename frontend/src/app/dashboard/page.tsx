@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -843,9 +843,9 @@ export default function Dashboard() {
                                         `}
                                         style={{ flex: 1, border: 'none', width: '100%' }}
                                         onLoad={() => {
-                                            // Zoom'u aç: tam ekrana geçince
+                                            // Zoom'u aç: tam ekrana geçince (minimum-scale=0.25 ile zoom-out da çalışır)
                                             const vp = document.querySelector('meta[name=viewport]');
-                                            if (vp) vp.setAttribute('content', 'width=device-width, initial-scale=1, user-scalable=yes, viewport-fit=cover');
+                                            if (vp) vp.setAttribute('content', 'width=device-width, initial-scale=1, minimum-scale=0.25, maximum-scale=5, user-scalable=yes, viewport-fit=cover');
                                         }}
                                     />
                                 </div>
@@ -1020,192 +1020,159 @@ export default function Dashboard() {
                 </button>
             )}
 
+            {/* ── COMPOSE MODAL ── */}
             <AnimatePresence>
                 {isComposeOpen && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}
+                        style={{
+                            position: 'fixed', inset: 0,
+                            backgroundColor: isMobile ? 'white' : 'rgba(15, 23, 42, 0.6)',
+                            backdropFilter: isMobile ? 'none' : 'blur(4px)',
+                            display: 'flex',
+                            alignItems: isMobile ? 'flex-start' : 'center',
+                            justifyContent: 'center',
+                            zIndex: 1000,
+                            padding: isMobile ? '0' : '20px'
+                        }}
                     >
                         <motion.div
-                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                            style={{ width: '100%', maxWidth: '850px', height: '90vh', backgroundColor: 'white', borderRadius: '12px', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}
+                            initial={isMobile ? { y: '100%' } : { scale: 0.95, opacity: 0, y: 20 }}
+                            animate={isMobile ? { y: 0 } : { scale: 1, opacity: 1, y: 0 }}
+                            exit={isMobile ? { y: '100%' } : { scale: 0.95, opacity: 0, y: 20 }}
+                            style={{
+                                width: '100%',
+                                maxWidth: isMobile ? '100%' : '850px',
+                                height: isMobile ? 'var(--app-height, 100vh)' : '90vh',
+                                backgroundColor: 'white',
+                                borderRadius: isMobile ? '0' : '12px',
+                                display: 'flex', flexDirection: 'column',
+                                overflow: 'hidden',
+                                boxShadow: isMobile ? 'none' : '0 25px 50px -12px rgba(0,0,0,0.25)'
+                            }}
                         >
-                            {/* Modal Header */}
-                            <div style={{ height: '56px', backgroundColor: '#0057B7', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <div style={{ backgroundColor: 'rgba(255,255,255,0.2)', padding: '6px', borderRadius: '6px' }}>
-                                        <Mail size={18} />
-                                    </div>
-                                    <span style={{ fontWeight: 700, fontSize: '16px', letterSpacing: '0.3px' }}>Yeni İleti Oluştur</span>
+                            {/* Header */}
+                            <div style={{
+                                height: isMobile ? '52px' : '56px',
+                                backgroundColor: '#0057B7', color: 'white',
+                                display: 'flex', alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: isMobile ? '0 12px' : '0 20px',
+                                flexShrink: 0
+                            }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    {isMobile ? (
+                                        <button type="button" onClick={() => setIsComposeOpen(false)}
+                                            style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', padding: '4px', display: 'flex' }}>
+                                            <X size={22} />
+                                        </button>
+                                    ) : (
+                                        <div style={{ backgroundColor: 'rgba(255,255,255,0.2)', padding: '6px', borderRadius: '6px' }}>
+                                            <Mail size={18} />
+                                        </div>
+                                    )}
+                                    <span style={{ fontWeight: 700, fontSize: '16px' }}>Yeni İleti</span>
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                    <button onClick={() => setIsComposeOpen(false)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', cursor: 'pointer', padding: '8px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
-                                        <X size={20} />
-                                    </button>
+                                    {isMobile && (
+                                        <button type="button" onClick={handleSend as any} disabled={sending}
+                                            style={{ backgroundColor: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.4)', color: 'white', borderRadius: '8px', padding: '6px 16px', fontSize: '14px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', opacity: sending ? 0.7 : 1 }}>
+                                            <Send size={14} /> {sending ? 'Gönderiliyor...' : 'Gönder'}
+                                        </button>
+                                    )}
+                                    {!isMobile && (
+                                        <button onClick={() => setIsComposeOpen(false)}
+                                            style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: 'white', cursor: 'pointer', padding: '8px', borderRadius: '50%', display: 'flex' }}>
+                                            <X size={20} />
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
-                            {/* Modal Form */}
-                            <form onSubmit={handleSend} style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '0' }}>
-                                <div style={{ padding: '8px 20px', display: 'flex', flexDirection: 'column' }}>
-                                    {/* Recipient Field */}
-                                    <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #F1F5F9', padding: '8px 0' }}>
-                                        <span style={{ width: '60px', fontSize: '14px', color: '#64748B', fontWeight: 600 }}>Kime:</span>
-                                        <input
-                                            type="text"
-                                            placeholder="E-posta adresi yazın..."
-                                            value={composeData.to}
+                            {/* Form */}
+                            <form onSubmit={handleSend} style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                                <div style={{ padding: isMobile ? '0 12px' : '0 20px 8px', borderBottom: '1px solid #F1F5F9', flexShrink: 0 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #F1F5F9', padding: '10px 0' }}>
+                                        <span style={{ width: '52px', fontSize: '14px', color: '#64748B', fontWeight: 600, flexShrink: 0 }}>Kime:</span>
+                                        <input type="text" placeholder="E-posta adresi..." value={composeData.to}
                                             onChange={e => setComposeData({ ...composeData, to: e.target.value })}
-                                            style={{ flex: 1, border: 'none', padding: '8px 4px', fontSize: '14px', outline: 'none', fontWeight: 500, color: '#1E293B' }}
-                                            required
-                                        />
-                                        <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: '#0057B7', fontWeight: 600 }}>
-                                            {!showCc && <button type="button" onClick={() => setShowCc(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}>Bilgi (Cc)</button>}
-                                            {!showBcc && <button type="button" onClick={() => setShowBcc(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}>Gizli (Bcc)</button>}
-                                        </div>
+                                            style={{ flex: 1, border: 'none', padding: '4px', fontSize: '14px', outline: 'none', color: '#1E293B', minWidth: 0 }} required />
+                                        {!isMobile && (
+                                            <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: '#0057B7', fontWeight: 600, flexShrink: 0 }}>
+                                                {!showCc && <button type="button" onClick={() => setShowCc(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}>Cc</button>}
+                                                {!showBcc && <button type="button" onClick={() => setShowBcc(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}>Bcc</button>}
+                                            </div>
+                                        )}
                                     </div>
-
-                                    {/* Cc Field */}
+                                    {isMobile && (
+                                        <div style={{ display: 'flex', gap: '8px', padding: '6px 0' }}>
+                                            {!showCc && <button type="button" onClick={() => setShowCc(true)} style={{ background: '#EFF6FF', border: 'none', cursor: 'pointer', color: '#0057B7', fontSize: '12px', fontWeight: 600, padding: '4px 10px', borderRadius: '12px' }}>+ Cc</button>}
+                                            {!showBcc && <button type="button" onClick={() => setShowBcc(true)} style={{ background: '#EFF6FF', border: 'none', cursor: 'pointer', color: '#0057B7', fontSize: '12px', fontWeight: 600, padding: '4px 10px', borderRadius: '12px' }}>+ Bcc</button>}
+                                        </div>
+                                    )}
                                     {showCc && (
-                                        <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #F1F5F9', padding: '8px 0' }}>
-                                            <span style={{ width: '60px', fontSize: '14px', color: '#64748B', fontWeight: 600 }}>Cc:</span>
-                                            <input
-                                                type="text"
-                                                placeholder="Cc e-posta adresi..."
-                                                value={composeData.cc}
+                                        <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #F1F5F9', padding: '10px 0' }}>
+                                            <span style={{ width: '52px', fontSize: '14px', color: '#64748B', fontWeight: 600, flexShrink: 0 }}>Cc:</span>
+                                            <input type="text" placeholder="Cc..." value={composeData.cc}
                                                 onChange={e => setComposeData({ ...composeData, cc: e.target.value })}
-                                                style={{ flex: 1, border: 'none', padding: '8px 4px', fontSize: '14px', outline: 'none', fontWeight: 500, color: '#1E293B' }}
-                                            />
-                                            <button type="button" onClick={() => setShowCc(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8' }}><X size={14} /></button>
+                                                style={{ flex: 1, border: 'none', padding: '4px', fontSize: '14px', outline: 'none', color: '#1E293B', minWidth: 0 }} />
+                                            <button type="button" onClick={() => setShowCc(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8', flexShrink: 0 }}><X size={14} /></button>
                                         </div>
                                     )}
-
-                                    {/* Bcc Field */}
                                     {showBcc && (
-                                        <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #F1F5F9', padding: '8px 0' }}>
-                                            <span style={{ width: '60px', fontSize: '14px', color: '#64748B', fontWeight: 600 }}>Bcc:</span>
-                                            <input
-                                                type="text"
-                                                placeholder="Bcc e-posta adresi..."
-                                                value={composeData.bcc}
+                                        <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #F1F5F9', padding: '10px 0' }}>
+                                            <span style={{ width: '52px', fontSize: '14px', color: '#64748B', fontWeight: 600, flexShrink: 0 }}>Bcc:</span>
+                                            <input type="text" placeholder="Bcc..." value={composeData.bcc}
                                                 onChange={e => setComposeData({ ...composeData, bcc: e.target.value })}
-                                                style={{ flex: 1, border: 'none', padding: '8px 4px', fontSize: '14px', outline: 'none', fontWeight: 500, color: '#1E293B' }}
-                                            />
-                                            <button type="button" onClick={() => setShowBcc(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8' }}><X size={14} /></button>
+                                                style={{ flex: 1, border: 'none', padding: '4px', fontSize: '14px', outline: 'none', color: '#1E293B', minWidth: 0 }} />
+                                            <button type="button" onClick={() => setShowBcc(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#94A3B8', flexShrink: 0 }}><X size={14} /></button>
                                         </div>
                                     )}
-
-                                    {/* Subject Field */}
-                                    <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #F1F5F9', padding: '8px 0' }}>
-                                        <span style={{ width: '60px', fontSize: '14px', color: '#64748B', fontWeight: 600 }}>Konu:</span>
-                                        <input
-                                            type="text"
-                                            placeholder="İleti konusu girin..."
-                                            value={composeData.subject}
+                                    <div style={{ display: 'flex', alignItems: 'center', padding: '10px 0' }}>
+                                        <span style={{ width: '52px', fontSize: '14px', color: '#64748B', fontWeight: 600, flexShrink: 0 }}>Konu:</span>
+                                        <input type="text" placeholder="İleti konusu..." value={composeData.subject}
                                             onChange={e => setComposeData({ ...composeData, subject: e.target.value })}
-                                            style={{ flex: 1, border: 'none', padding: '8px 4px', fontSize: '14px', outline: 'none', fontWeight: 600, color: '#1E293B' }}
-                                            required
-                                        />
+                                            style={{ flex: 1, border: 'none', padding: '4px', fontSize: '14px', outline: 'none', fontWeight: 600, color: '#1E293B', minWidth: 0 }} required />
                                     </div>
                                 </div>
 
-                                {/* Attachments List */}
                                 {attachments.length > 0 && (
-                                    <div style={{ padding: '0 20px 8px', display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                    <div style={{ padding: isMobile ? '6px 12px' : '4px 20px', display: 'flex', flexWrap: 'wrap', gap: '6px', flexShrink: 0 }}>
                                         {attachments.map((file, idx) => (
-                                            <div key={idx} style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: '6px',
-                                                backgroundColor: '#F1F5F9',
-                                                padding: '4px 8px',
-                                                borderRadius: '4px',
-                                                fontSize: '12px',
-                                                color: '#334155',
-                                                border: '1px solid #E2E8F0'
-                                            }}>
-                                                <Paperclip size={12} />
-                                                <span style={{ maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeAttachment(idx)}
-                                                    style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '2px', display: 'flex', alignItems: 'center', color: '#EF4444' }}
-                                                >
-                                                    <X size={12} />
-                                                </button>
+                                            <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '4px', backgroundColor: '#F1F5F9', padding: '3px 8px', borderRadius: '4px', fontSize: '12px', color: '#334155', border: '1px solid #E2E8F0' }}>
+                                                <Paperclip size={11} />
+                                                <span style={{ maxWidth: '120px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
+                                                <button type="button" onClick={() => removeAttachment(idx)} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', color: '#EF4444' }}><X size={11} /></button>
                                             </div>
                                         ))}
                                     </div>
                                 )}
 
-                                {/* Rich Text Editor Area */}
                                 <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                                    <RichTextEditor
-                                        value={composeData.body}
-                                        onChange={(html: string) => setComposeData({ ...composeData, body: html })}
-                                    />
+                                    <RichTextEditor value={composeData.body} onChange={(html: string) => setComposeData({ ...composeData, body: html })} />
                                 </div>
 
-                                {/* Bottom Action Bar */}
-                                <div style={{ height: '72px', borderTop: '1px solid #E2E8F0', padding: '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#FFFFFF' }}>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                                        <button type="submit" disabled={sending} style={{
-                                            backgroundColor: '#0057B7',
-                                            color: 'white',
-                                            border: 'none',
-                                            padding: '12px 32px',
-                                            borderRadius: '8px',
-                                            fontWeight: 700,
-                                            fontSize: '15px',
-                                            cursor: 'pointer',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '10px',
-                                            boxShadow: '0 4px 6px -1px rgba(0, 87, 183, 0.3)',
-                                            opacity: sending ? 0.7 : 1,
-                                            transition: 'all 0.2s'
-                                        }}>
-                                            {sending ? (
-                                                <>Yükleniyor...</>
-                                            ) : (
-                                                <>
-                                                    <span>Gönder</span>
-                                                    <Send size={18} />
-                                                </>
-                                            )}
+                                <div style={{ height: isMobile ? '56px' : '72px', borderTop: '1px solid #E2E8F0', padding: isMobile ? '0 12px' : '0 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#FFFFFF', flexShrink: 0 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                        {!isMobile && (
+                                            <button type="submit" disabled={sending} style={{ backgroundColor: '#0057B7', color: 'white', border: 'none', padding: '10px 28px', borderRadius: '8px', fontWeight: 700, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', opacity: sending ? 0.7 : 1 }}>
+                                                {sending ? 'Gönderiliyor...' : <><span>Gönder</span><Send size={16} /></>}
+                                            </button>
+                                        )}
+                                        <button type="button" onClick={() => fileInputRef.current?.click()}
+                                            style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', padding: '8px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                            <Paperclip size={isMobile ? 22 : 20} />
+                                            {isMobile && <span style={{ fontSize: '12px' }}>Ekle</span>}
                                         </button>
-
-                                        <button
-                                            type="button"
-                                            onClick={() => fileInputRef.current?.click()}
-                                            style={{ background: 'none', border: 'none', color: '#64748B', cursor: 'pointer', padding: '8px', borderRadius: '6px', transition: 'all 0.2s' }}
-                                            title="Dosya Ekle"
-                                        >
-                                            <Paperclip size={20} />
-                                        </button>
-                                        <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            style={{ display: 'none' }}
-                                            multiple
-                                        />
+                                        <input type="file" ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} multiple />
                                     </div>
-
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <button
-                                            type="button"
-                                            onClick={handleDiscard}
-                                            style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: '8px', borderRadius: '6px' }}
-                                            title="Çöpe At"
-                                        >
-                                            <Trash2 size={20} />
-                                        </button>
-                                    </div>
+                                    <button type="button" onClick={handleDiscard}
+                                        style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', padding: '8px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                        <Trash2 size={isMobile ? 22 : 20} />
+                                        {isMobile && <span style={{ fontSize: '12px', color: '#94A3B8' }}>Sil</span>}
+                                    </button>
                                 </div>
                             </form>
                         </motion.div>
@@ -1215,4 +1182,3 @@ export default function Dashboard() {
         </div>
     );
 }
-
