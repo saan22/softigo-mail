@@ -92,7 +92,8 @@ export default function Dashboard() {
         );
     });
 
-    // Auth + initial data fetch — does NOT depend on isMobile to avoid double-fetching
+    // Auth + initial data fetch — runs ONCE on mount only
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
         const token = localStorage.getItem("softigo_token");
         const email = localStorage.getItem("softigo_user");
@@ -105,7 +106,7 @@ export default function Dashboard() {
         setUserEmail(email || "");
         fetchFolders();
         fetchWidgetData();
-    }, [router]);
+    }, []); // Empty deps = mount only, router is stable within session
 
     // Re-fetch mails only when selected folder changes
     useEffect(() => {
