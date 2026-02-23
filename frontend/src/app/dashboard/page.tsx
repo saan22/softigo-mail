@@ -91,6 +91,7 @@ export default function Dashboard() {
         );
     });
 
+    // Auth + initial data fetch — does NOT depend on isMobile to avoid double-fetching
     useEffect(() => {
         const token = localStorage.getItem("softigo_token");
         const email = localStorage.getItem("softigo_user");
@@ -100,16 +101,17 @@ export default function Dashboard() {
             return;
         }
 
-        // Mobile sidebar logic
-        if (isMobile) {
-            setIsSidebarOpen(false);
-        }
-
         setUserEmail(email || "");
         fetchFolders();
-        fetchMails(selectedFolder);
         fetchWidgetData();
-    }, [router, selectedFolder, isMobile]);
+    }, [router]);
+
+    // Re-fetch mails only when selected folder changes
+    useEffect(() => {
+        const token = localStorage.getItem("softigo_token");
+        if (!token) return;
+        fetchMails(selectedFolder);
+    }, [selectedFolder]);
 
     const fetchWidgetData = async () => {
         try {
@@ -567,7 +569,7 @@ export default function Dashboard() {
                             {folders.map(folder => {
                                 const info = getFolderInfo(folder.type, folder.name);
                                 return (
-                                    <button key={folder.path} onClick={() => { setSelectedFolder(folder.path); fetchMails(folder.path); if (isMobile) setMobileView('list'); }} style={{
+                                    <button key={folder.path} onClick={() => { setSelectedFolder(folder.path); if (isMobile) setMobileView('list'); }} style={{
                                         display: 'flex', alignItems: 'center', gap: '12px', padding: isMobile ? '14px 16px' : '10px 12px', borderRadius: '8px', border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%',
                                         backgroundColor: selectedFolder === folder.path ? '#EFF6FF' : 'transparent',
                                         color: selectedFolder === folder.path ? '#0057B7' : '#334155',
