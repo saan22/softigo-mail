@@ -302,11 +302,28 @@ export default function Dashboard() {
         setIsComposeOpen(true);
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            const newFiles = Array.from(e.target.files);
-            setAttachments(prev => [...prev, ...newFiles]);
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files) return;
+        const newFiles = Array.from(e.target.files);
+        const validFiles: File[] = [];
+
+        for (const file of newFiles) {
+            try {
+                // iOS iCloud dosyalarını erken doğrula (indirilmemiş olabilir)
+                await new Promise<void>((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve();
+                    reader.onerror = () => reject(new Error(`'${file.name}' dosyası okunamadı`));
+                    reader.readAsArrayBuffer(file.slice(0, 1024));
+                });
+                validFiles.push(file);
+            } catch (err: any) {
+                alert(`⚠️ ${err.message}. Dosya atlandı.`);
+            }
         }
+
+        if (validFiles.length > 0) setAttachments(prev => [...prev, ...validFiles]);
+        e.target.value = ''; // Aynı dosya tekrar seçilebilsin
     };
 
     const removeAttachment = (index: number) => {
@@ -339,7 +356,19 @@ export default function Dashboard() {
             if (composeData.bcc) formData.append('bcc', composeData.bcc);
             formData.append('subject', composeData.subject);
             formData.append('html', composeData.body);
-            attachments.forEach(file => formData.append('attachments', file));
+            // iOS Safari'de File nesneleri doğrudan FormData'ya eklenince
+            // 'The string did not match the expected pattern' hatası çıkabiliyor.
+            // Çözüm: önce ArrayBuffer'a dönüştür, sonra Blob olarak ekle.
+            for (const file of attachments) {
+                try {
+                    const buf = await file.arrayBuffer();
+                    const mimeType = file.type || 'application/octet-stream';
+                    const blob = new Blob([buf], { type: mimeType });
+                    formData.append('attachments', blob, file.name);
+                } catch {
+                    throw new Error(`'${file.name}' dosyası gönderilirken okunamadı. Dosyayı tekrar seçin.`);
+                }
+            }
 
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/send`, {
                 method: "POST",
