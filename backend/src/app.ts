@@ -136,13 +136,21 @@ fastify.post('/api/login', async (request, reply) => {
 
         try {
             console.log(`⏳ Deneme başlatılıyor: Host=${testHost}, Port=${testPort}, Secure=${testSecure}`);
-            await Promise.race([
-                client.connect(),
-                new Promise((_, reject) => setTimeout(() => {
+
+            let timerId: NodeJS.Timeout;
+            const timeoutPromise = new Promise<never>((_, reject) => {
+                timerId = setTimeout(() => {
                     client.close();
                     reject(new Error('Connection timed out'));
-                }, 10000))
+                }, 10000);
+            });
+
+            await Promise.race([
+                client.connect(),
+                timeoutPromise
             ]);
+
+            clearTimeout(timerId!);
             await client.logout();
             console.log(`✅ Bağlantı başarılı: ${testHost}:${testPort}`);
             return { success: true, host: testHost, port: testPort, secure: testSecure };
