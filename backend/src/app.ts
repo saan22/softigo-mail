@@ -127,7 +127,7 @@ fastify.post('/api/login', async (request, reply) => {
             auth: { user: email, pass: password },
             tls: { rejectUnauthorized: false },
             logger: false as any,
-            greetingTimeout: 10000
+            greetingTimeout: 5000
         });
 
         client.on('error', err => {
@@ -136,7 +136,13 @@ fastify.post('/api/login', async (request, reply) => {
 
         try {
             console.log(`⏳ Deneme başlatılıyor: Host=${testHost}, Port=${testPort}, Secure=${testSecure}`);
-            await client.connect();
+            await Promise.race([
+                client.connect(),
+                new Promise((_, reject) => setTimeout(() => {
+                    client.close();
+                    reject(new Error('Connection timed out'));
+                }, 10000))
+            ]);
             await client.logout();
             console.log(`✅ Bağlantı başarılı: ${testHost}:${testPort}`);
             return { success: true, host: testHost, port: testPort, secure: testSecure };
@@ -167,17 +173,23 @@ fastify.post('/api/login', async (request, reply) => {
             { h: `imap.${domain}`, p: 143, s: false }
         ];
 
-        for (const strat of strategies) {
-            result = await testConnection(strat.h, strat.p, strat.s);
-            if (result.success) {
-                break;
-            } else {
-                lastError = result.error;
-                // Şifre yanlışsa diğerlerini denemeye gerek yok.
-                if (lastError?.message?.includes('AUTHENTICATIONFAILED') || lastError?.message?.includes('Authentication failed')) {
-                    break;
-                }
-            }
+        try {
+            // Run all connection attempts concurrently.
+            // Promise.any resolves with the FIRST promise that fulfills.
+            result = await Promise.any(
+                strategies.map(strat =>
+                    testConnection(strat.h, strat.p, strat.s).then(res => {
+                        if (!res.success) throw res.error; // Reject so Promise.any ignores it
+                        return res;
+                    })
+                )
+            );
+        } catch (error: any) {
+            // If Promise.any catches, it means ALL promises rejected (AggregateError)
+            // We'll extract the first useful error (like Authentication failed)
+            const errors = error.errors || [error];
+            lastError = errors.find((e: any) => e?.message?.includes('AUTHENTICATIONFAILED') || e?.message?.includes('Authentication failed'))
+                || errors[0];
         }
     }
 
