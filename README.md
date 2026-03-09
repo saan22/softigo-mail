@@ -44,7 +44,7 @@ Proje Docker desteği ile gelmektedir. En sağlıklı kurulum için Docker kulla
 ### Hızlı Docker Kurulumu
 
 1. `docker-compose.yml` dosyasındaki ayarları düzenleyin.
-2. `docker-compose up -d --build` komutunu çalıştırın.
+2. `docker compose up -d --build` komutunu çalıştırın.
 3. Nginx veya benzeri bir ters vekil (reverse proxy) sunucu ile SSL sertifikasını yapılandırın.
 
 ---
