@@ -54,32 +54,31 @@ export default function LoginPage() {
 
         try {
             // Determine host/port
-            let imapHost = serverConfig.host;
-            let imapPort = parseInt(serverConfig.port);
-
             if (!showAdvanced) {
-                const emailDomain = credentials.email.split('@')[1];
+                const emailDomain = credentials.email.includes('@') ? credentials.email.split('@')[1] : null;
                 if (!emailDomain) {
                     throw new Error("Geçersiz e-posta adresi");
                 }
-
-                // Dynamic host detection
-                imapHost = `mail.${emailDomain}`;
             }
 
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 15000);
 
+            const payload: any = {
+                email: credentials.email,
+                password: credentials.password,
+            };
+
+            if (showAdvanced) {
+                payload.host = serverConfig.host;
+                payload.port = parseInt(serverConfig.port);
+                payload.secure = serverConfig.secure;
+            }
+
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    email: credentials.email,
-                    password: credentials.password,
-                    host: imapHost,
-                    port: imapPort,
-                    secure: serverConfig.secure
-                }),
+                body: JSON.stringify(payload),
                 signal: controller.signal
             });
 

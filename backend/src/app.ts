@@ -118,54 +118,93 @@ fastify.post('/api/login', async (request, reply) => {
     const { email, password, host, port, secure } = request.body as any;
     console.log(`🔑 Giriş isteği alındı: ${email}`);
 
-    const client = new ImapFlow({
-        host: host || process.env.IMAP_HOST,
-        port: parseInt(port || process.env.IMAP_PORT),
-        secure: secure ?? (process.env.IMAP_SECURE === 'true'),
-        auth: { user: email, pass: password },
-        tls: {
-            rejectUnauthorized: false
-        },
-        logger: {} as any, // Enable logging to console
-        greetingTimeout: 15000
-    });
+    // Helper setup
+    const testConnection = async (testHost: string, testPort: number, testSecure: boolean) => {
+        const client = new ImapFlow({
+            host: testHost,
+            port: testPort,
+            secure: testSecure,
+            auth: { user: email, pass: password },
+            tls: { rejectUnauthorized: false },
+            logger: false as any,
+            greetingTimeout: 10000
+        });
 
-    // Prevent crash on async errors
-    client.on('error', err => {
-        console.error('❌ IMAP Client Error Event:', err);
-    });
+        client.on('error', err => {
+            console.error(`❌ IMAP Error Event (${testHost}:${testPort}):`, err.message);
+        });
 
-    try {
-        console.log(`✅ Giriş denemesi başlatıldı: Email=${email}, Host=${host || process.env.IMAP_HOST}, Port=${port || process.env.IMAP_PORT}`);
-        await client.connect();
-        console.log('✅ Bağlantı başarılı, token üretiliyor.');
-        await client.logout();
+        try {
+            console.log(`⏳ Deneme başlatılıyor: Host=${testHost}, Port=${testPort}, Secure=${testSecure}`);
+            await client.connect();
+            await client.logout();
+            console.log(`✅ Bağlantı başarılı: ${testHost}:${testPort}`);
+            return { success: true, host: testHost, port: testPort, secure: testSecure };
+        } catch (error: any) {
+            console.warn(`⚠️ Bağlantı başarısız (${testHost}:${testPort}):`, error.message);
+            return { success: false, error };
+        }
+    };
 
-        const sessionData = JSON.stringify({ email, password, host, port, secure });
+    let result: any = null;
+    let lastError: any = null;
+
+    if (host && port) {
+        // Gelişmiş seçeneklerden manuel girildiyse
+        result = await testConnection(host, parseInt(port), secure ?? true);
+        if (!result.success) lastError = result.error;
+    } else {
+        // Auto-Discovery: Domain adından otomatik bul
+        const domain = email.includes('@') ? email.split('@')[1] : null;
+        if (!domain) {
+            return reply.status(400).send({ success: false, message: 'Geçersiz e-posta adresi.' });
+        }
+
+        const strategies = [
+            { h: `mail.${domain}`, p: 993, s: true },
+            { h: `imap.${domain}`, p: 993, s: true },
+            { h: `mail.${domain}`, p: 143, s: false },
+            { h: `imap.${domain}`, p: 143, s: false }
+        ];
+
+        for (const strat of strategies) {
+            result = await testConnection(strat.h, strat.p, strat.s);
+            if (result.success) {
+                break;
+            } else {
+                lastError = result.error;
+                // Şifre yanlışsa diğerlerini denemeye gerek yok.
+                if (lastError?.message?.includes('AUTHENTICATIONFAILED') || lastError?.message?.includes('Authentication failed')) {
+                    break;
+                }
+            }
+        }
+    }
+
+    if (result && result.success) {
+        // En son çalışan ayarları session'a kaydet.
+        const sessionData = JSON.stringify({
+            email,
+            password,
+            host: result.host,
+            port: result.port,
+            secure: result.secure
+        });
         const token = CryptoService.encrypt(sessionData);
 
         return { success: true, token };
-    } catch (error: any) {
-        console.error('❌ IMAP Bağlantı Hatası:', {
-            host: host || process.env.IMAP_HOST,
-            port: port || process.env.IMAP_PORT,
-            email: email,
-            error: error.message,
-            code: error.code,
-            syscall: error.syscall,
-            stack: error.stack
-        });
+    } else {
+        const errStr = lastError?.message || '';
+        let userMessage = 'Giriş başarısız: Sunucuya bağlanılamadı. Lütfen gelişmiş ayarları kullanın.';
 
-        let userMessage = 'Giriş başarısız: ' + (error.response || error.message);
-
-        if (error.message.includes('AUTHENTICATIONFAILED') || error.message.includes('Authentication failed')) {
+        if (errStr.includes('AUTHENTICATIONFAILED') || errStr.includes('Authentication failed')) {
             userMessage = 'Giriş başarısız: Kullanıcı adı veya şifre hatalı. Lütfen bilgilerinizi kontrol edin.';
-        } else if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT') {
-            userMessage = 'Sunucuya bağlanılamadı. Lütfen sunucu adresini (Host) ve Port numarasını kontrol edin.';
+        } else if (lastError?.code === 'ECONNRESET' || lastError?.code === 'ETIMEDOUT') {
+            userMessage = 'Sunucuya bağlanılamadı. Lütfen alan adınızın e-posta sunucusunun aktif olduğundan emin olun.';
         }
 
         console.error('----------------------------------------');
-        reply.status(401).send({ success: false, message: userMessage });
+        return reply.status(401).send({ success: false, message: userMessage });
     }
 });
 

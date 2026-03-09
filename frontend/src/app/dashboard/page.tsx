@@ -197,8 +197,11 @@ export default function Dashboard() {
 
     const handleLogout = () => {
         if (confirm("Oturumu kapatmak istediğinizden emin misiniz?")) {
-            localStorage.removeItem("softigo_token");
-            localStorage.removeItem("softigo_user");
+            const theme = localStorage.getItem("softigo_theme");
+            localStorage.clear();
+            if (theme) {
+                localStorage.setItem("softigo_theme", theme);
+            }
             window.location.href = "/";
         }
     };
