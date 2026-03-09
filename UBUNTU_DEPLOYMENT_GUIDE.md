@@ -22,8 +22,8 @@ Projenin bağımlılıklardan etkilenmeden, izole bir şekilde çalışması iç
 curl -fsSL https://get.docker.com -o get-docker.sh
 sudo sh get-docker.sh
 
-# Docker Compose kurulumu
-sudo apt install docker-compose -y
+# Docker Compose kurulumu (V2 - Modern Yöntem)
+sudo apt install docker-compose-plugin -y
 ```
 
 ## 3. Projenin Sunucuya Alınması
@@ -49,7 +49,7 @@ nano docker-compose.yml
 
 ```bash
 # Image'ları oluştur ve arka planda çalıştır
-sudo docker-compose up -d --build
+sudo docker compose up -d --build
 ```
 
 ## 6. Nginx ve SSL (Tavsiye Edilen)
@@ -83,9 +83,9 @@ server {
 
 ## 7. İzleme ve Yönetim
 
-- **Logları izleme:** `sudo docker-compose logs -f`
-- **Konteyner durumları:** `sudo docker ps`
-- **Durdurma:** `sudo docker-compose down`
+- **Logları izleme:** `sudo docker compose logs -f`
+- **Konteyner durumları:** `sudo docker ps` VEYA `sudo docker compose ps`
+- **Durdurma:** `sudo docker compose down`
 
 ---
 **Not:** Güvenlik için Ubuntu Güvenlik Duvarı'nı (UFW) yapılandırmayı unutmayın:
