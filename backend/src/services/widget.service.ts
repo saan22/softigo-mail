@@ -51,7 +51,10 @@ export class WidgetService {
             const data = await response.json() as any;
 
             if (data.status === 'ok') {
-                return data.items.slice(0, 5).map((item: any) => item.title);
+                return data.items.slice(0, 6).map((item: any) => ({
+                    title: item.title,
+                    link: item.link
+                }));
             }
             return [];
         } catch (error) {
@@ -60,10 +63,10 @@ export class WidgetService {
         }
     }
 
-    static async getAllData() {
+    static async getAllData(city: string = 'Istanbul') {
         const [rates, weather, news] = await Promise.all([
             this.getExchangeRates(),
-            this.getWeather(),
+            this.getWeather(city),
             this.getNews()
         ]);
 

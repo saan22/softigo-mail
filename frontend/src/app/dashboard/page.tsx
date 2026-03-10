@@ -33,6 +33,7 @@ export default function Dashboard() {
     const [folders, setFolders] = useState<any[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedUids, setSelectedUids] = useState<number[]>([]);
+    const [weatherCity, setWeatherCity] = useState("Istanbul");
     const [widgetData, setWidgetData] = useState<any>({
         rates: [],
         weather: { temp: "--", desc: "Yükleniyor...", city: "İstanbul" },
@@ -106,7 +107,10 @@ export default function Dashboard() {
 
         setUserEmail(email || "");
         fetchFolders();
-        fetchWidgetData();
+
+        const storedCity = localStorage.getItem("softigo_weather_city") || "Istanbul";
+        setWeatherCity(storedCity);
+        fetchWidgetData(storedCity);
     }, []); // Empty deps = mount only, router is stable within session
 
     // Re-fetch mails only when selected folder changes
@@ -116,9 +120,9 @@ export default function Dashboard() {
         fetchMails(selectedFolder);
     }, [selectedFolder]);
 
-    const fetchWidgetData = async () => {
+    const fetchWidgetData = async (city: string) => {
         try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/widgets/data`);
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/widgets/data?city=${encodeURIComponent(city)}`);
             const result = await response.json();
             if (result.success) {
                 setWidgetData(result.data);
@@ -963,7 +967,25 @@ export default function Dashboard() {
                     </div>
 
                     <div style={{ marginBottom: '24px' }}>
-                        <h4 style={{ fontSize: '13px', fontWeight: 800, color: '#1E293B', marginBottom: '12px', borderBottom: '2px solid #0057B7', paddingBottom: '4px' }}>HAVA DURUMU</h4>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', borderBottom: '2px solid #0057B7', paddingBottom: '4px' }}>
+                            <h4 style={{ fontSize: '13px', fontWeight: 800, color: '#1E293B', margin: 0 }}>HAVA DURUMU</h4>
+                            <select
+                                value={weatherCity}
+                                onChange={(e) => {
+                                    setWeatherCity(e.target.value);
+                                    localStorage.setItem('softigo_weather_city', e.target.value);
+                                    fetchWidgetData(e.target.value);
+                                }}
+                                style={{ fontSize: '11px', padding: '2px 4px', borderRadius: '4px', border: '1px solid #CBD5E1', outline: 'none', backgroundColor: '#fff', color: '#1E293B' }}
+                            >
+                                <option value="Istanbul">İstanbul</option>
+                                <option value="Ankara">Ankara</option>
+                                <option value="Izmir">İzmir</option>
+                                <option value="Bursa">Bursa</option>
+                                <option value="Antalya">Antalya</option>
+                                <option value="Adana">Adana</option>
+                            </select>
+                        </div>
                         <div style={{ backgroundColor: 'white', borderRadius: '8px', border: '1px solid #CBD5E1', padding: '20px', textAlign: 'center' }}>
                             <div style={{ fontSize: '36px', fontWeight: 600, color: '#1E293B' }}>{widgetData.weather?.temp}°C</div>
                             <div style={{ fontSize: '16px', color: '#334155', fontWeight: 600, textTransform: 'capitalize', marginTop: '4px' }}>{widgetData.weather?.desc}</div>
@@ -975,7 +997,9 @@ export default function Dashboard() {
                         <h4 style={{ fontSize: '13px', fontWeight: 800, color: '#1E293B', marginBottom: '12px', borderBottom: '2px solid #0057B7', paddingBottom: '4px' }}>HABERLER</h4>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                             {widgetData.news.length > 0 ? widgetData.news.map((item: any, idx: number) => (
-                                <div key={idx} style={{ fontSize: '13px', color: '#334155', fontWeight: 500, lineHeight: 1.5, paddingBottom: '10px', borderBottom: '1px solid #E2E8F0' }}>{item}</div>
+                                <a key={idx} href={item.link} target="_blank" rel="noopener noreferrer" style={{ fontSize: '13px', color: '#334155', fontWeight: 500, lineHeight: 1.5, paddingBottom: '10px', borderBottom: '1px solid #E2E8F0', textDecoration: 'none', display: 'block' }}>
+                                    <div style={{ transition: 'color 0.2s ease', cursor: 'pointer' }} onMouseOver={(e) => (e.currentTarget.style.color = '#0057B7')} onMouseOut={(e) => (e.currentTarget.style.color = '#334155')}>{item.title}</div>
+                                </a>
                             )) : <div style={{ fontSize: '12px', color: '#94A3B8' }}>Yükleniyor...</div>}
                         </div>
                     </div>
