@@ -174,7 +174,7 @@ export default function LoginPage() {
                             src="/logo.png"
                             alt="Softigo Business Mail"
                             style={{
-                                height: isMobile ? '200px' : '280px',
+                                height: isMobile ? '300px' : '420px',
                                 width: 'auto',
                                 display: 'block',
                                 filter: 'drop-shadow(0 4px 24px rgba(255,140,0,0.25))'
