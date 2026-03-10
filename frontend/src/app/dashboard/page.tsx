@@ -6,7 +6,7 @@ import {
     Inbox, Send, Trash2, Star, Mail, Search,
     RefreshCw, LogOut, Calendar, User, X, ArrowRight,
     FileText, AlertOctagon, Archive, Reply, Paperclip,
-    Sun, Moon, Download, Menu, Settings, Bell,
+    Download, Menu, Settings, Bell,
     TrendingUp, CloudSun, MapPin, Globe, ExternalLink,
     ChevronDown, ChevronUp, Clock, Info, Globe2,
     ChevronLeft, ChevronRight, Square, CheckSquare
@@ -17,7 +17,7 @@ import { useTheme } from "../../context/ThemeContext";
 
 export default function Dashboard() {
     const router = useRouter();
-    const { theme, toggleTheme, colors } = useTheme();
+    const { colors } = useTheme();
     const [mails, setMails] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedMail, setSelectedMail] = useState<any>(null);
@@ -451,24 +451,24 @@ export default function Dashboard() {
     // ────────────────────────────────────────────────────────────────────
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: 'var(--app-height, 100vh)', backgroundColor: isMobile ? '#F2F2F7' : '#FFFFFF', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: 'var(--app-height, 100vh)', backgroundColor: colors.bg, overflow: 'hidden' }}>
 
             {/* ── MOBILE HEADER (list/sidebar) ── */}
             {isMobile && mobileView !== 'detail' && (
-                <header style={{ height: '60px', backgroundColor: 'white', borderBottom: '1px solid #E5E5EA', display: 'flex', alignItems: 'center', padding: '0 20px', justifyContent: 'space-between', flexShrink: 0, zIndex: 100 }}>
+                <header style={{ height: '60px', backgroundColor: colors.headerBg, borderBottom: `1px solid ${colors.sidebarBorder}`, display: 'flex', alignItems: 'center', padding: '0 20px', justifyContent: 'space-between', flexShrink: 0, zIndex: 100 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <img src="/logo.png" alt="Softigo" style={{ height: '28px' }} />
-                        <span style={{ fontWeight: 700, fontSize: '20px', color: '#1C1C1E', letterSpacing: '-0.3px' }}>Softigo Mail</span>
+                        <span style={{ fontWeight: 700, fontSize: '20px', color: colors.text, letterSpacing: '-0.3px' }}>Softigo Mail</span>
                     </div>
                     <button onClick={() => setIsComposeOpen(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <Search size={22} color="#007AFF" />
+                        <Search size={22} color={colors.accent} />
                     </button>
                 </header>
             )}
 
             {/* ── MOBILE HEADER (detail view) ── */}
             {isMobile && mobileView === 'detail' && (
-                <header style={{ height: '52px', backgroundColor: '#0057B7', color: 'white', display: 'flex', alignItems: 'center', padding: '0 16px', justifyContent: 'space-between', flexShrink: 0, zIndex: 100 }}>
+                <header style={{ height: '52px', background: `linear-gradient(90deg, ${colors.accent} 0%, #c06800 100%)`, color: 'white', display: 'flex', alignItems: 'center', padding: '0 16px', justifyContent: 'space-between', flexShrink: 0, zIndex: 100 }}>
                     <button onClick={() => { setMobileView('list'); setSelectedMail(null); }} style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: 'white', cursor: 'pointer', padding: '6px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px', fontWeight: 600 }}>
                         <ChevronLeft size={18} /> Geri
                     </button>
@@ -483,27 +483,27 @@ export default function Dashboard() {
 
             {/* ── DESKTOP HEADER ── */}
             {!isMobile && (
-                <header style={{ height: '42px', backgroundColor: '#0057B7', color: 'white', display: 'flex', alignItems: 'center', padding: '0 16px', fontSize: '12px', zIndex: 100, flexShrink: 0 }}>
+                <header style={{ height: '42px', background: `linear-gradient(90deg, #1a0800 0%, #2a1000 100%)`, borderBottom: `1px solid ${colors.accent}44`, color: 'white', display: 'flex', alignItems: 'center', padding: '0 16px', fontSize: '12px', zIndex: 100, flexShrink: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
-                        <span style={{ fontWeight: 600, fontSize: '14px' }}>Softigo BulutMail</span>
+                        <span style={{ fontWeight: 600, fontSize: '14px', color: colors.accent }}>Softigo BulutMail</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <span>{userEmail}</span>
-                        <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer' }}><LogOut size={16} /></button>
+                        <span style={{ color: colors.subtext }}>{userEmail}</span>
+                        <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: colors.subtext, cursor: 'pointer' }}><LogOut size={16} /></button>
                     </div>
                 </header>
             )}
 
             {/* ACTION BAR - Desktop Only */}
-            {!isMobile && <div style={{ height: '48px', backgroundColor: 'white', borderBottom: '1px solid #E2E8F0', display: 'flex', alignItems: 'center', padding: '0 16px', gap: '8px', flexShrink: 0 }}>
-                <button onClick={() => setIsComposeOpen(true)} style={{ backgroundColor: '#0057B7', color: 'white', border: 'none', padding: '6px 16px', borderRadius: '4px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            {!isMobile && <div style={{ height: '48px', backgroundColor: colors.headerBg, borderBottom: `1px solid ${colors.mailListBorder}`, display: 'flex', alignItems: 'center', padding: '0 16px', gap: '8px', flexShrink: 0 }}>
+                <button onClick={() => setIsComposeOpen(true)} style={{ backgroundColor: colors.accent, color: 'white', border: 'none', padding: '6px 16px', borderRadius: '4px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <Send size={14} /> Oluştur
                 </button>
-                <button onClick={() => fetchMails(selectedFolder)} style={{ background: 'none', border: 'none', color: '#334155', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px', fontWeight: 500, marginLeft: '8px' }}>
+                <button onClick={() => fetchMails(selectedFolder)} style={{ background: 'none', border: 'none', color: colors.subtext, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px', fontWeight: 500, marginLeft: '8px' }}>
                     <RefreshCw size={14} /> Yenile
                 </button>
 
-                <div style={{ width: '1px', height: '24px', backgroundColor: '#E2E8F0', margin: '0 8px' }} />
+                <div style={{ width: '1px', height: '24px', backgroundColor: colors.mailListBorder, margin: '0 8px' }} />
 
                 <div
                     onClick={toggleSelectAll}
@@ -592,9 +592,9 @@ export default function Dashboard() {
                 </div>
 
                 <div style={{ flex: 1 }} />
-                <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#FFFFFF', border: '1px solid #CBD5E1', borderRadius: '4px', padding: '6px 12px', width: '320px' }}>
-                    <Search size={16} style={{ color: '#64748B' }} />
-                    <input type="text" placeholder="E-postalarda ara..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ border: 'none', background: 'none', outline: 'none', marginLeft: '8px', fontSize: '14px', width: '100%', color: '#1E293B' }} />
+                <div style={{ display: 'flex', alignItems: 'center', backgroundColor: colors.inputBg, border: `1px solid ${colors.inputBorder}`, borderRadius: '4px', padding: '6px 12px', width: '320px' }}>
+                    <Search size={16} style={{ color: colors.subtext }} />
+                    <input type="text" placeholder="E-postalarda ara..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ border: 'none', background: 'none', outline: 'none', marginLeft: '8px', fontSize: '14px', width: '100%', color: colors.text }} />
                 </div>
             </div>}
 
@@ -613,8 +613,8 @@ export default function Dashboard() {
                 {/* COL 1: SIDEBAR - Desktop always visible, Mobile shown only when mobileView==='sidebar' */}
                 <div style={{
                     width: isMobile ? '100%' : '220px',
-                    backgroundColor: '#FFFFFF',
-                    borderRight: isMobile ? 'none' : '1px solid #E2E8F0',
+                    backgroundColor: colors.sidebarBg,
+                    borderRight: isMobile ? 'none' : `1px solid ${colors.sidebarBorder}`,
                     display: isMobile ? (mobileView === 'sidebar' ? 'flex' : 'none') : 'flex',
                     flexDirection: 'column',
                     overflowY: 'auto'
@@ -622,20 +622,21 @@ export default function Dashboard() {
                     <div style={{ padding: isMobile ? '24px 20px' : '32px 16px', marginBottom: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px' }}>
                         <img src="/logo.png" alt="SOFTIGO" style={{ height: isMobile ? '64px' : '96px' }} />
                         {isMobile && <div>
-                            <div style={{ fontSize: '18px', fontWeight: 800, color: '#0057B7' }}>BulutMail</div>
-                            <div style={{ fontSize: '13px', color: '#64748B', marginTop: '2px' }}>{userEmail}</div>
+                            <div style={{ fontSize: '18px', fontWeight: 800, color: colors.accent }}>BulutMail</div>
+                            <div style={{ fontSize: '13px', color: colors.subtext, marginTop: '2px' }}>{userEmail}</div>
                         </div>}
                     </div>
                     <div style={{ padding: '0 16px' }}>
-                        <p style={{ fontSize: '11px', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase', marginBottom: '12px', letterSpacing: '0.5px' }}>KLASÖRLER</p>
+                        <p style={{ fontSize: '11px', fontWeight: 700, color: colors.accent, textTransform: 'uppercase', marginBottom: '12px', letterSpacing: '0.5px' }}>KLASÖRLER</p>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                             {folders.map(folder => {
                                 const info = getFolderInfo(folder.type, folder.name);
                                 return (
                                     <button key={folder.path} onClick={() => { setSelectedFolder(folder.path); if (isMobile) setMobileView('list'); }} style={{
                                         display: 'flex', alignItems: 'center', gap: '12px', padding: isMobile ? '14px 16px' : '10px 12px', borderRadius: '8px', border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%',
-                                        backgroundColor: selectedFolder === folder.path ? '#EFF6FF' : 'transparent',
-                                        color: selectedFolder === folder.path ? '#0057B7' : '#334155',
+                                        background: selectedFolder === folder.path ? colors.folderActive : 'transparent',
+                                        color: selectedFolder === folder.path ? colors.accent : colors.subtext,
+                                        borderLeft: selectedFolder === folder.path ? `3px solid ${colors.accent}` : '3px solid transparent',
                                         fontSize: isMobile ? '15px' : '14px', fontWeight: selectedFolder === folder.path ? 700 : 500,
                                         transition: 'all 0.15s'
                                     }}>
@@ -646,8 +647,8 @@ export default function Dashboard() {
                         </div>
                     </div>
                     {isMobile && (
-                        <div style={{ marginTop: 'auto', padding: '24px 16px', borderTop: '1px solid #E2E8F0' }}>
-                            <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', width: '100%', backgroundColor: '#FEF2F2', color: '#EF4444', fontSize: '15px', fontWeight: 600 }}>
+                        <div style={{ marginTop: 'auto', padding: '24px 16px', borderTop: `1px solid ${colors.sidebarBorder}` }}>
+                            <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 16px', borderRadius: '8px', border: 'none', cursor: 'pointer', width: '100%', backgroundColor: colors.dangerBg, color: colors.danger, fontSize: '15px', fontWeight: 600 }}>
                                 <LogOut size={18} /> Oturumu Kapat
                             </button>
                         </div>
@@ -657,8 +658,8 @@ export default function Dashboard() {
                 {/* COL 2: MAIL LIST */}
                 <div style={{
                     width: isMobile ? '100%' : '350px',
-                    backgroundColor: isMobile ? '#F2F2F7' : 'white',
-                    borderRight: isMobile ? 'none' : '1px solid #E2E8F0',
+                    backgroundColor: colors.mailListBg,
+                    borderRight: isMobile ? 'none' : `1px solid ${colors.mailListBorder}`,
                     overflowY: 'auto',
                     display: isMobile ? (mobileView === 'list' ? 'block' : 'none') : 'block'
                 }}>
@@ -739,9 +740,9 @@ export default function Dashboard() {
                         filteredMails.map(mail => (
                             <div key={mail.uid} onClick={() => handleMailSelect(mail)} style={{
                                 padding: '12px 16px',
-                                borderBottom: '1px solid #F1F5F9', cursor: 'pointer',
-                                backgroundColor: selectedMail?.uid === mail.uid ? '#EFF6FF' : 'transparent',
-                                borderLeft: mail.flags?.includes('\\Seen') ? '3px solid transparent' : '3px solid #0057B7',
+                                borderBottom: `1px solid ${colors.mailListBorder}`, cursor: 'pointer',
+                                backgroundColor: selectedMail?.uid === mail.uid ? colors.mailItemActive : 'transparent',
+                                borderLeft: mail.flags?.includes('\\Seen') ? '3px solid transparent' : `3px solid ${colors.accent}`,
                                 display: 'flex', gap: '12px', alignItems: 'flex-start',
                                 transition: 'background-color 0.1s'
                             }}>
