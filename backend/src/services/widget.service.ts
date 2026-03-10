@@ -1,3 +1,5 @@
+import * as https from 'https';
+
 export class WidgetService {
     static async getExchangeRates() {
         try {
@@ -28,15 +30,30 @@ export class WidgetService {
 
             const coords = cityCoords[city] || cityCoords['Istanbul'];
 
-            // AbortController added to avoid hang if weather API lags
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
-
-            const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true`, {
-                signal: controller.signal
+            // We use https module with family: 4 to prevent Node's IPv6 timeout issues in some hostings
+            const data: any = await new Promise((resolve, reject) => {
+                const req = https.get(
+                    `https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true`,
+                    { family: 4, timeout: 5000 },
+                    (res) => {
+                        let body = '';
+                        res.on('data', (chunk) => body += chunk);
+                        res.on('end', () => {
+                            try {
+                                resolve(JSON.parse(body));
+                            } catch (e) {
+                                reject(e);
+                            }
+                        });
+                    }
+                );
+                req.on('error', reject);
+                req.on('timeout', () => {
+                    req.destroy();
+                    reject(new Error('Request timed out'));
+                });
             });
-            clearTimeout(timeoutId);
-            const data = await response.json() as any;
+
             const current = data.current_weather;
 
             // WMO Weather interpretation codes
