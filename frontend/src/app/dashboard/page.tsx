@@ -481,6 +481,107 @@ export default function Dashboard() {
                 </header>
             )}
 
+            {/* ── MOBILE MAIN CONTENT ── */}
+            {isMobile && (
+                <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', position: 'relative', backgroundColor: colors.mailDetailBg }}>
+                    {/* MOBILE SIDEBAR VIEW */}
+                    {mobileView === 'sidebar' && (
+                        <div style={{ flex: 1, backgroundColor: colors.sidebarBg, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+                            <div style={{ padding: '24px 20px', display: 'flex', alignItems: 'center', gap: '12px', borderBottom: `1px solid ${colors.sidebarBorder}` }}>
+                                <img src="/logo.png" alt="Softigo" style={{ height: '128px' }} />
+                                <div>
+                                    <div style={{ fontSize: '18px', fontWeight: 800, color: colors.accent }}>Softigo Mail</div>
+                                    <div style={{ fontSize: '12px', color: colors.subtext }}>{userEmail}</div>
+                                </div>
+                            </div>
+                            <div style={{ padding: '20px 16px' }}>
+                                <p style={{ fontSize: '11px', fontWeight: 700, color: colors.accent, textTransform: 'uppercase', marginBottom: '16px', letterSpacing: '1px' }}>KLASÖRLER</p>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    {folders.map(folder => {
+                                        const info = getFolderInfo(folder.type, folder.name);
+                                        return (
+                                            <button key={folder.path} onClick={() => { setSelectedFolder(folder.path); setMobileView('list'); }} style={{
+                                                display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 16px', borderRadius: '12px', border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%',
+                                                background: selectedFolder === folder.path ? colors.folderActive : 'transparent',
+                                                color: selectedFolder === folder.path ? colors.accent : colors.subtext,
+                                                fontSize: '16px', fontWeight: selectedFolder === folder.path ? 700 : 500
+                                            }}>
+                                                {info.icon} {info.label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                            <div style={{ marginTop: 'auto', padding: '20px 16px', borderTop: `1px solid ${colors.sidebarBorder}` }}>
+                                <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 16px', borderRadius: '12px', border: 'none', cursor: 'pointer', width: '100%', backgroundColor: colors.dangerBg, color: colors.danger, fontSize: '16px', fontWeight: 600 }}>
+                                    <LogOut size={20} /> Oturumu Kapat
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* MOBILE LIST VIEW */}
+                    {mobileView === 'list' && (
+                        <div style={{ flex: 1, overflowY: 'auto' }}>
+                            {loading ? (
+                                <div style={{ padding: '60px 20px', textAlign: 'center', color: colors.subtext }}>Yükleniyor...</div>
+                            ) : filteredMails.length === 0 ? (
+                                <div style={{ padding: '80px 20px', textAlign: 'center', color: colors.subtext }}>
+                                    <Mail size={48} style={{ opacity: 0.15, margin: '0 auto 16px', display: 'block' }} />
+                                    <p>İleti yok</p>
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                    {filteredMails.map(mail => (
+                                        <div key={mail.uid} onClick={() => handleMailSelect(mail)} style={{
+                                            padding: '16px 20px', borderBottom: `1px dotted ${colors.sidebarBorder}`, cursor: 'pointer',
+                                            display: 'flex', gap: '14px', alignItems: 'center'
+                                        }}>
+                                            <div style={{ width: 44, height: 44, borderRadius: '22px', backgroundColor: getAvatarColor(mail.from || ''), display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: 'white' }}>
+                                                {getInitials(mail.from || 'U')}
+                                            </div>
+                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                                    <span style={{ fontSize: '15px', fontWeight: mail.flags?.includes('\\Seen') ? 500 : 800, color: colors.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{getDisplayName(mail.from || '')}</span>
+                                                    <span style={{ fontSize: '12px', color: colors.subtext }}>{formatMailDate(mail.date)}</span>
+                                                </div>
+                                                <div style={{ fontSize: '14px', fontWeight: mail.flags?.includes('\\Seen') ? 400 : 700, color: colors.subtext, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{mail.subject || '(Konu Yok)'}</div>
+                                            </div>
+                                            <ChevronRight size={18} color={colors.subtext} />
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* MOBILE DETAIL VIEW */}
+                    {mobileView === 'detail' && selectedMail && (
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: 'white' }}>
+                            <div style={{ padding: '20px', borderBottom: '1px solid #F1F5F9' }}>
+                                <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#1E293B', marginBottom: '12px' }}>{selectedMail.subject || '(Konu Yok)'}</h2>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: getAvatarColor(selectedMail.from || ''), display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700 }}>{getInitials(selectedMail.from || 'U')}</div>
+                                    <div>
+                                        <div style={{ fontSize: '14px', fontWeight: 600, color: '#1E293B' }}>{selectedMail.from}</div>
+                                        <div style={{ fontSize: '12px', color: '#64748B' }}>{new Date(selectedMail.date).toLocaleString()}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style={{ flex: 1, padding: '16px', overflowY: 'auto' }}>
+                                {selectedMail.loading ? (
+                                    <div style={{ textAlign: 'center', padding: '40px' }}>Yükleniyor...</div>
+                                ) : (
+                                    <iframe
+                                        srcDoc={`<html><head><style>body { font-family: sans-serif; line-height: 1.6; color: #1e293b; margin: 0; padding: 10px; } img { max-width: 100%; height: auto; }</style></head><body>${selectedMail.body}</body></html>`}
+                                        style={{ width: '100%', height: '100%', border: 'none' }}
+                                    />
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </main>
+            )}
             {/* ── DESKTOP LAYOUT CONTAINER - Floating rounded card ── */}
             {!isMobile && (
                 <div style={{
