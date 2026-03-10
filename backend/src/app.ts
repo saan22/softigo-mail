@@ -1166,7 +1166,8 @@ ${html}`;
 // Widgets Data API
 fastify.get('/api/widgets/data', async (request, reply) => {
     try {
-        const data = await WidgetService.getAllData();
+        const { city } = request.query as any;
+        const data = await WidgetService.getAllData(city);
         return { success: true, data };
     } catch (error: any) {
         console.error("Widget verisi hatası:", error);
