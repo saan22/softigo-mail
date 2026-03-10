@@ -217,13 +217,13 @@ fastify.post('/api/login', async (request, reply) => {
 
         return { success: true, token };
     } else {
-        const errStr = lastError?.message || '';
-        let userMessage = 'Giriş başarısız: Sunucuya bağlanılamadı. Lütfen gelişmiş ayarları kullanın.';
+        const errStr = lastError?.message || lastError?.code || 'Bilinmeyen hata';
+        let userMessage = `Giriş başarısız: Sunucuya bağlanılamadı. Lütfen gelişmiş ayarları kullanın. (Hata: ${errStr})`;
 
         if (errStr.includes('AUTHENTICATIONFAILED') || errStr.includes('Authentication failed') || errStr.includes('Command failed')) {
             userMessage = 'Giriş başarısız: Kullanıcı adı veya şifre hatalı. Lütfen bilgilerinizi kontrol edin.';
         } else if (lastError?.code === 'ECONNRESET' || lastError?.code === 'ETIMEDOUT') {
-            userMessage = 'Sunucuya bağlanılamadı. Lütfen alan adınızın e-posta sunucusunun aktif olduğundan emin olun.';
+            userMessage = `Sunucuya bağlanılamadı. Lütfen alan adınızın e-posta sunucusunun aktif olduğundan emin olun. (Hata: ${errStr})`;
         }
 
         console.error('----------------------------------------');
