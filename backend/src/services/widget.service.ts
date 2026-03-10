@@ -17,27 +17,48 @@ export class WidgetService {
 
     static async getWeather(city: string = 'Istanbul') {
         try {
-            const response = await fetch(`https://wttr.in/${city}?format=j1`);
-            const data = await response.json() as any;
-            const current = data.current_condition[0];
+            const cityCoords: Record<string, { lat: number, lon: number }> = {
+                'Istanbul': { lat: 41.0082, lon: 28.9784 },
+                'Ankara': { lat: 39.9199, lon: 32.8543 },
+                'Izmir': { lat: 38.4127, lon: 27.1384 },
+                'Bursa': { lat: 40.1828, lon: 29.0667 },
+                'Antalya': { lat: 36.8848, lon: 30.7040 },
+                'Adana': { lat: 37.0017, lon: 35.3289 }
+            };
 
-            const descMap: any = {
-                'Sunny': 'Açık',
-                'Clear': 'Açık',
-                'Partly cloudy': 'Parçalı Bulutlu',
-                'Cloudy': 'Bulutlu',
-                'Overcast': 'Kapalı',
-                'Mist': 'Sisli',
-                'Patchy rain possible': 'Yer yer yağmurlu',
-                'Light rain': 'Hafif Yağmurlu',
-                'Rain': 'Yağmurlu'
+            const coords = cityCoords[city] || cityCoords['Istanbul'];
+
+            // AbortController added to avoid hang if weather API lags
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+            const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${coords.lat}&longitude=${coords.lon}&current_weather=true`, {
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            const data = await response.json() as any;
+            const current = data.current_weather;
+
+            // WMO Weather interpretation codes
+            const code = current.weathercode;
+            let desc = 'Açık';
+            if (code >= 1 && code <= 3) desc = 'Parçalı Bulutlu';
+            if (code >= 45 && code <= 48) desc = 'Sisli';
+            if (code >= 51 && code <= 67) desc = 'Yağmurlu';
+            if (code >= 71 && code <= 77) desc = 'Kar Yağışlı';
+            if (code >= 80 && code <= 82) desc = 'Sağanak Yağışlı';
+            if (code >= 95) desc = 'Fırtınalı';
+
+            const displayCityMap: Record<string, string> = {
+                'Istanbul': 'İstanbul', 'Ankara': 'Ankara', 'Izmir': 'İzmir',
+                'Bursa': 'Bursa', 'Antalya': 'Antalya', 'Adana': 'Adana'
             };
 
             return {
-                temp: current.temp_C,
-                desc: descMap[current.weatherDesc[0].value] || current.weatherDesc[0].value,
-                humidity: current.humidity,
-                city: city === 'Istanbul' ? 'İstanbul' : city
+                temp: Math.round(current.temperature),
+                desc: desc,
+                humidity: "N/A", // current_weather format of open-meteo doesn't give humidity in basic call unless requested separately
+                city: displayCityMap[city] || city
             };
         } catch (error) {
             console.error("Hava durumu çekme hatası:", error);
