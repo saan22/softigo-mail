@@ -194,10 +194,13 @@ fastify.post('/api/login', async (request, reply) => {
             );
         } catch (error: any) {
             // If Promise.any catches, it means ALL promises rejected (AggregateError)
-            // We'll extract the first useful error (like Authentication failed)
+            // Extract the first useful error (like Authentication failed / Command failed)
             const errors = error.errors || [error];
-            lastError = errors.find((e: any) => e?.message?.includes('AUTHENTICATIONFAILED') || e?.message?.includes('Authentication failed'))
-                || errors[0];
+            lastError = errors.find((e: any) =>
+                e?.message?.includes('AUTHENTICATIONFAILED') ||
+                e?.message?.includes('Authentication failed') ||
+                e?.message?.includes('Command failed')
+            ) || errors[0];
         }
     }
 
@@ -217,7 +220,7 @@ fastify.post('/api/login', async (request, reply) => {
         const errStr = lastError?.message || '';
         let userMessage = 'Giriş başarısız: Sunucuya bağlanılamadı. Lütfen gelişmiş ayarları kullanın.';
 
-        if (errStr.includes('AUTHENTICATIONFAILED') || errStr.includes('Authentication failed')) {
+        if (errStr.includes('AUTHENTICATIONFAILED') || errStr.includes('Authentication failed') || errStr.includes('Command failed')) {
             userMessage = 'Giriş başarısız: Kullanıcı adı veya şifre hatalı. Lütfen bilgilerinizi kontrol edin.';
         } else if (lastError?.code === 'ECONNRESET' || lastError?.code === 'ETIMEDOUT') {
             userMessage = 'Sunucuya bağlanılamadı. Lütfen alan adınızın e-posta sunucusunun aktif olduğundan emin olun.';
