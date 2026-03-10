@@ -170,18 +170,17 @@ export default function LoginPage() {
                 {/* Logo Section */}
                 <div style={{ textAlign: 'center', marginBottom: '16px', marginTop: '40px' }}>
                     <div style={{ marginBottom: '0px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <img
-                            src="/logo.png"
-                            alt="Softigo Logo"
-                            style={{
-                                height: isMobile ? '160px' : '240px',
-                                width: 'auto',
-                                filter: theme === 'dark'
-                                    ? 'drop-shadow(0 0 40px rgba(59,130,246,0.6))'
-                                    : 'drop-shadow(0 2px 10px rgba(0,0,0,0.1))',
-                                transition: 'all 0.3s ease'
-                            }}
-                        />
+                        <div style={{ background: 'rgba(255,255,255,0.95)', borderRadius: '16px', padding: '12px 24px', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
+                            <img
+                                src="/logo.png"
+                                alt="Softigo Business Mail"
+                                style={{
+                                    height: isMobile ? '100px' : '140px',
+                                    width: 'auto',
+                                    display: 'block'
+                                }}
+                            />
+                        </div>
                     </div>
                 </div>
 
@@ -203,7 +202,7 @@ export default function LoginPage() {
                         left: 0,
                         right: 0,
                         height: '2px',
-                        background: 'linear-gradient(90deg, transparent, rgba(59,130,246,0.5), transparent)'
+                        background: 'linear-gradient(90deg, transparent, rgba(255,140,0,0.8), transparent)'
                     }} />
 
                     <form onSubmit={handleSubmit} style={{ padding: isMobile ? '24px' : '40px' }}>
