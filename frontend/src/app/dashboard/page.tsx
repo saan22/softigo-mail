@@ -451,7 +451,7 @@ export default function Dashboard() {
     // ────────────────────────────────────────────────────────────────────
 
     return (
-        <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: 'var(--app-height, 100vh)', backgroundColor: colors.bg, overflow: 'hidden' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', width: '100vw', height: 'var(--app-height, 100vh)', background: 'radial-gradient(circle at 50% 100%, #1a0800 0%, #050209 100%)', overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
 
             {/* ── MOBILE HEADER (list/sidebar) ── */}
             {isMobile && mobileView !== 'detail' && (
@@ -481,122 +481,260 @@ export default function Dashboard() {
                 </header>
             )}
 
-            {/* ── DESKTOP HEADER ── */}
+            {/* ── DESKTOP LAYOUT CONTAINER - Floating rounded card ── */}
             {!isMobile && (
-                <header style={{ height: '42px', background: `linear-gradient(90deg, #1a0800 0%, #2a1000 100%)`, borderBottom: `1px solid ${colors.accent}44`, color: 'white', display: 'flex', alignItems: 'center', padding: '0 16px', fontSize: '12px', zIndex: 100, flexShrink: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
-                        <span style={{ fontWeight: 600, fontSize: '14px', color: colors.accent }}>Softigo Business Mail</span>
+                <div style={{
+                    width: '96%', height: '92vh', maxWidth: '1400px',
+                    display: 'flex', flexDirection: 'column',
+                    borderRadius: '16px', overflow: 'hidden',
+                    border: '1px solid rgba(255,140,0,0.25)',
+                    boxShadow: '0 0 80px rgba(255,90,0,0.15), 0 0 0 1px rgba(255,255,255,0.05)',
+                    backgroundColor: colors.mailDetailBg
+                }}>
+
+                    {/* ── DESKTOP TOP HEADER ── */}
+                    <header style={{
+                        height: '56px', background: 'linear-gradient(90deg, #110700 0%, #1f0d00 100%)',
+                        borderBottom: `1px solid ${colors.accent}44`,
+                        display: 'flex', alignItems: 'center', padding: '0 16px', gap: '12px',
+                        flexShrink: 0, zIndex: 100
+                    }}>
+                        <img src="/logo.png" alt="Softigo" style={{ height: '36px', background: 'rgba(255,255,255,0.95)', borderRadius: '8px', padding: '2px 8px' }} />
+                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,140,0,0.2)', borderRadius: '8px', padding: '6px 12px', gap: '8px', maxWidth: '400px' }}>
+                            <Search size={15} style={{ color: colors.subtext }} />
+                            <input type="text" placeholder="E-postaları ara..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ border: 'none', background: 'none', outline: 'none', fontSize: '13px', width: '100%', color: colors.text }} />
+                        </div>
+                        <div style={{ flex: 1 }} />
+                        <span style={{ color: colors.subtext, fontSize: '13px' }}>{userEmail}</span>
+                        <button style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,140,0,0.2)', borderRadius: '50%', width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                            <Bell size={16} color={colors.subtext} />
+                        </button>
+                        <button onClick={handleLogout} style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,140,0,0.2)', borderRadius: '50%', width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                            <User size={16} color={colors.subtext} />
+                        </button>
+                    </header>
+
+                    {/* ── DESKTOP ACTION BAR ── */}
+                    <div style={{ height: '44px', backgroundColor: colors.headerBg, borderBottom: `1px solid ${colors.mailListBorder}`, display: 'flex', alignItems: 'center', padding: '0 16px', gap: '8px', flexShrink: 0 }}>
+                        <button onClick={() => setIsComposeOpen(true)} style={{ background: `linear-gradient(90deg, ${colors.accent}, #c06800)`, color: 'white', border: 'none', padding: '5px 14px', borderRadius: '4px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
+                            <Send size={13} /> Oluştur
+                        </button>
+                        <button onClick={() => fetchMails(selectedFolder)} style={{ background: 'none', border: 'none', color: colors.subtext, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', padding: '5px 8px' }}>
+                            <RefreshCw size={13} /> Yenile
+                        </button>
+                        <div style={{ width: '1px', height: '20px', backgroundColor: colors.mailListBorder, margin: '0 4px' }} />
+                        <div onClick={toggleSelectAll} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '5px', borderRadius: '4px' }} title="Tümünü Seç/Kaldır">
+                            {selectedUids.length === filteredMails.length && filteredMails.length > 0 ? (
+                                <CheckSquare size={16} style={{ color: colors.accent }} />
+                            ) : (
+                                <Square size={16} style={{ color: colors.subtext }} />
+                            )}
+                        </div>
+                        <div style={{ width: '1px', height: '20px', backgroundColor: colors.mailListBorder, margin: '0 4px' }} />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                            <button onClick={() => selectedMail && handleReplyMail(selectedMail)} disabled={!selectedMail} title="Yanıtla" style={{ background: 'none', border: 'none', color: selectedMail ? colors.subtext : 'rgba(255,255,255,0.15)', cursor: selectedMail ? 'pointer' : 'default', padding: '5px', borderRadius: '4px', display: 'flex', alignItems: 'center' }}><Reply size={16} /></button>
+                            <button disabled={!selectedMail} title="İlet" style={{ background: 'none', border: 'none', color: selectedMail ? colors.subtext : 'rgba(255,255,255,0.15)', cursor: selectedMail ? 'pointer' : 'default', padding: '5px', borderRadius: '4px', display: 'flex', alignItems: 'center' }}><ArrowRight size={16} /></button>
+                            <button onClick={() => { const uids = selectedUids.length > 0 ? selectedUids.join(',') : selectedMail?.uid; if (uids) handleArchiveMail(uids); }} disabled={!(selectedMail || selectedUids.length > 0)} title="Arşivle" style={{ background: 'none', border: 'none', color: (selectedMail || selectedUids.length > 0) ? colors.subtext : 'rgba(255,255,255,0.15)', cursor: (selectedMail || selectedUids.length > 0) ? 'pointer' : 'default', padding: '5px', borderRadius: '4px', display: 'flex', alignItems: 'center' }}><Archive size={16} /></button>
+                            <button onClick={() => { const uids = selectedUids.length > 0 ? selectedUids.join(',') : selectedMail?.uid; if (uids) handleMarkAsSpam(uids); }} disabled={!(selectedMail || selectedUids.length > 0)} title="Spam" style={{ background: 'none', border: 'none', color: (selectedMail || selectedUids.length > 0) ? colors.subtext : 'rgba(255,255,255,0.15)', cursor: (selectedMail || selectedUids.length > 0) ? 'pointer' : 'default', padding: '5px', borderRadius: '4px', display: 'flex', alignItems: 'center' }}><AlertOctagon size={16} /></button>
+                            <button onClick={() => { const uids = selectedUids.length > 0 ? selectedUids.join(',') : selectedMail?.uid; if (uids) handleDeleteMail(uids); }} disabled={!(selectedMail || selectedUids.length > 0)} title="Sil" style={{ background: 'none', border: 'none', color: (selectedMail || selectedUids.length > 0) ? colors.danger : 'rgba(255,255,255,0.15)', cursor: (selectedMail || selectedUids.length > 0) ? 'pointer' : 'default', padding: '5px', borderRadius: '4px', display: 'flex', alignItems: 'center' }}><Trash2 size={16} /></button>
+                        </div>
+                        <div style={{ width: '1px', height: '20px', backgroundColor: colors.mailListBorder, margin: '0 4px' }} />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                            <button onClick={() => handleNavigate('prev')} disabled={!selectedMail || filteredMails.findIndex(m => m.uid === selectedMail.uid) <= 0} title="Önceki" style={{ background: 'none', border: 'none', color: (!selectedMail || filteredMails.findIndex(m => m.uid === selectedMail.uid) <= 0) ? 'rgba(255,255,255,0.15)' : colors.subtext, cursor: 'pointer', padding: '5px', borderRadius: '4px' }}><ChevronLeft size={18} /></button>
+                            <button onClick={() => handleNavigate('next')} disabled={!selectedMail || filteredMails.findIndex(m => m.uid === selectedMail.uid) === (filteredMails.length - 1)} title="Sonraki" style={{ background: 'none', border: 'none', color: (!selectedMail || filteredMails.findIndex(m => m.uid === selectedMail.uid) === (filteredMails.length - 1)) ? 'rgba(255,255,255,0.15)' : colors.subtext, cursor: 'pointer', padding: '5px', borderRadius: '4px' }}><ChevronRight size={18} /></button>
+                        </div>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <span style={{ color: colors.subtext }}>{userEmail}</span>
-                        <button onClick={handleLogout} style={{ background: 'none', border: 'none', color: colors.subtext, cursor: 'pointer' }}><LogOut size={16} /></button>
-                    </div>
-                </header>
+
+                    {/* ── DESKTOP MAIN CONTENT ── */}
+                    <main style={{ flex: 1, display: 'flex', overflow: 'hidden', position: 'relative' }}>
+                        {/* COL 1: SIDEBAR */}
+                        <div style={{ width: '180px', backgroundColor: colors.sidebarBg, borderRight: `1px solid ${colors.sidebarBorder}`, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+                            <div style={{ padding: '12px', flex: 1 }}>
+                                <p style={{ fontSize: '10px', fontWeight: 700, color: colors.accent, textTransform: 'uppercase', marginBottom: '8px', marginTop: '8px', letterSpacing: '0.8px', padding: '0 4px' }}>KLASÖRLER</p>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                    {folders.map(folder => {
+                                        const info = getFolderInfo(folder.type, folder.name);
+                                        return (
+                                            <button key={folder.path} onClick={() => setSelectedFolder(folder.path)} style={{
+                                                display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 10px', borderRadius: '6px', border: 'none', cursor: 'pointer', textAlign: 'left', width: '100%',
+                                                background: selectedFolder === folder.path ? `linear-gradient(90deg, rgba(255,140,0,0.3) 0%, rgba(255,140,0,0.05) 100%)` : 'transparent',
+                                                color: selectedFolder === folder.path ? colors.accent : colors.subtext,
+                                                borderLeft: selectedFolder === folder.path ? `3px solid ${colors.accent}` : '3px solid transparent',
+                                                fontSize: '13px', fontWeight: selectedFolder === folder.path ? 700 : 400,
+                                                transition: 'all 0.15s'
+                                            }}>
+                                                {info.icon} {info.label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                            {/* Sidebar bottom icons */}
+                            <div style={{ padding: '12px', borderTop: `1px solid ${colors.sidebarBorder}`, display: 'flex', justifyContent: 'space-around' }}>
+                                <button title="Ayarlar" style={{ background: 'none', border: 'none', color: colors.subtext, cursor: 'pointer', padding: '8px', borderRadius: '8px' }}><Settings size={18} /></button>
+                                <button title="Profil" onClick={handleLogout} style={{ background: 'none', border: 'none', color: colors.subtext, cursor: 'pointer', padding: '8px', borderRadius: '8px' }}><User size={18} /></button>
+                                <button title="Takvim" style={{ background: 'none', border: 'none', color: colors.subtext, cursor: 'pointer', padding: '8px', borderRadius: '8px' }}><Calendar size={18} /></button>
+                            </div>
+                        </div>
+
+                        {/* COL 2: MAIL LIST */}
+                        <div style={{ width: '280px', backgroundColor: colors.mailListBg, borderRight: `1px solid ${colors.mailListBorder}`, overflowY: 'auto' }}>
+                            {loading ? (
+                                <div style={{ padding: '60px 20px', textAlign: 'center', color: colors.subtext, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                                    <RefreshCw size={24} style={{ opacity: 0.4 }} />
+                                    Yükleniyor...
+                                </div>
+                            ) : filteredMails.length === 0 ? (
+                                <div style={{ padding: '80px 20px', textAlign: 'center', color: colors.subtext }}>
+                                    <Mail size={48} style={{ opacity: 0.15, margin: '0 auto 16px', display: 'block' }} />
+                                    <p style={{ fontWeight: 500, fontSize: '16px' }}>İleti yok</p>
+                                </div>
+                            ) : (
+                                filteredMails.map(mail => (
+                                    <div key={mail.uid} onClick={() => handleMailSelect(mail)} style={{
+                                        padding: '10px 14px',
+                                        borderBottom: `1px solid ${colors.mailListBorder}`, cursor: 'pointer',
+                                        backgroundColor: selectedMail?.uid === mail.uid ? colors.mailItemActive : 'transparent',
+                                        borderLeft: mail.flags?.includes('\\Seen') ? '3px solid transparent' : `3px solid ${colors.accent}`,
+                                        display: 'flex', gap: '10px', alignItems: 'flex-start',
+                                        transition: 'background-color 0.1s'
+                                    }}>
+                                        <div onClick={(e) => toggleSelectMail(e, mail.uid)} style={{ marginTop: '2px', cursor: 'pointer' }}>
+                                            {selectedUids.includes(mail.uid) ? (
+                                                <CheckSquare size={15} style={{ color: colors.accent }} />
+                                            ) : (
+                                                <Square size={15} style={{ color: colors.subtext }} />
+                                            )}
+                                        </div>
+                                        <div style={{ flex: 1, minWidth: 0 }}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
+                                                <span style={{ fontSize: '12px', fontWeight: mail.flags?.includes('\\Seen') ? 500 : 700, color: colors.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '140px' }}>{mail.from?.split('<')[0].trim() || mail.from}</span>
+                                                <span style={{ fontSize: '11px', color: colors.subtext, flexShrink: 0, marginLeft: '4px' }}>{new Date(mail.date).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                                            </div>
+                                            <div style={{ fontSize: '12px', fontWeight: mail.flags?.includes('\\Seen') ? 400 : 600, color: colors.subtext, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{mail.subject || '(Konu Yok)'}</div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
+                        {/* COL 3: MAIL CONTENT */}
+                        <div style={{ flex: 1, backgroundColor: colors.mailDetailBg, display: 'flex', flexDirection: 'column', overflowY: 'hidden' }}>
+                            {selectedMail ? (
+                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%' }}>
+                                    <div style={{ padding: '20px 24px', borderBottom: `1px solid ${colors.mailListBorder}` }}>
+                                        <h2 style={{ fontSize: '16px', fontWeight: 700, color: colors.text, marginBottom: '12px' }}>{selectedMail.subject || '(Konu Yok)'}</h2>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            <div style={{ width: '36px', height: '36px', borderRadius: '18px', background: `linear-gradient(135deg, ${colors.accent}, #c06800)`, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '14px' }}>{selectedMail.from?.charAt(0).toUpperCase()}</div>
+                                            <div>
+                                                <div style={{ fontSize: '13px', fontWeight: 600, color: colors.text }}>{selectedMail.from}</div>
+                                                <div style={{ fontSize: '11px', color: colors.subtext }}>{new Date(selectedMail.date).toLocaleString()}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style={{ flex: 1, padding: '20px 24px', overflowY: 'auto' }}>
+                                        {selectedMail.loading ? (
+                                            <div style={{ textAlign: 'center', padding: '40px', color: colors.subtext }}>Yükleniyor...</div>
+                                        ) : (
+                                            <iframe
+                                                srcDoc={`<html><head><style>body { font-family: 'Inter', system-ui, sans-serif; line-height: 1.6; color: #e2e8f0; margin: 0; padding: 12px; background: transparent; } img { max-width: 100%; height: auto; } a { color: ${colors.accent}; }</style></head><body>${selectedMail.body}</body></html>`}
+                                                style={{ width: '100%', height: 'calc(100% - 0px)', border: 'none', borderRadius: '6px', backgroundColor: 'transparent' }}
+                                            />
+                                        )}
+                                    </div>
+                                    {!selectedMail.loading && selectedMail.attachments && selectedMail.attachments.length > 0 && (
+                                        <div style={{ padding: '12px 24px', borderTop: `1px solid ${colors.mailListBorder}`, backgroundColor: colors.sidebarBg, flexShrink: 0 }}>
+                                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                                <Paperclip size={13} style={{ color: colors.subtext }} />
+                                                <span style={{ fontSize: '11px', fontWeight: 700, color: colors.subtext, textTransform: 'uppercase' }}>EKLER ({selectedMail.attachments.length})</span>
+                                            </div>
+                                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                                {selectedMail.attachments.map((att: any, idx: number) => (
+                                                    <a key={idx} href={`${process.env.NEXT_PUBLIC_API_URL}/api/mails/${selectedMail.uid}/attachments/${encodeURIComponent(att.filename)}?folder=${encodeURIComponent(selectedFolder)}&token=${encodeURIComponent(localStorage.getItem('softigo_token') || '')}`} target="_blank" rel="noopener noreferrer" onClick={(e) => { if (!confirm(`"${att.filename}" dosyasını indirmek istiyor musunuz?`)) e.preventDefault(); }} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 10px', backgroundColor: 'rgba(255,140,0,0.1)', border: `1px solid ${colors.accent}44`, borderRadius: '6px', textDecoration: 'none', color: colors.text }}>
+                                                        <FileText size={14} style={{ color: colors.accent }} />
+                                                        <div><div style={{ fontSize: '12px', fontWeight: 500, maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{att.filename}</div><div style={{ fontSize: '10px', color: colors.subtext }}>{(att.size / 1024).toFixed(1)} KB</div></div>
+                                                        <Download size={13} style={{ color: colors.subtext }} />
+                                                    </a>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: colors.subtext }}>
+                                    <img src="/logo.png" alt="Softigo" style={{ height: '100px', opacity: 0.12, marginBottom: '16px', filter: 'grayscale(30%)' }} />
+                                    <p style={{ fontSize: '15px', fontWeight: 500 }}>Görüntülenecek bir ileti seçin</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* COL 4: WIDGETS */}
+                        <div style={{ width: '240px', backgroundColor: colors.sidebarBg, borderLeft: `1px solid ${colors.sidebarBorder}`, padding: '12px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            {/* Döviz */}
+                            <div style={{ border: `1px solid ${colors.sidebarBorder}`, borderRadius: '10px', overflow: 'hidden' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderBottom: `1px solid ${colors.sidebarBorder}`, background: 'rgba(255,140,0,0.08)' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <TrendingUp size={13} color={colors.accent} />
+                                        <span style={{ fontSize: '11px', fontWeight: 800, color: colors.text, letterSpacing: '0.5px' }}>DÖVİZ KURLARI</span>
+                                    </div>
+                                    <ChevronRight size={14} color={colors.subtext} />
+                                </div>
+                                <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    {widgetData.rates.length > 0 ? widgetData.rates.map((rate: any) => (
+                                        <div key={rate.name} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px' }}>
+                                            <span style={{ fontWeight: 600, color: colors.subtext }}>{rate.name}</span>
+                                            <span style={{ fontWeight: 700, color: colors.text }}>{rate.value} ₺</span>
+                                        </div>
+                                    )) : <div style={{ fontSize: '12px', color: colors.subtext }}>Yükleniyor...</div>}
+                                </div>
+                            </div>
+
+                            {/* Hava Durumu */}
+                            <div style={{ border: `1px solid ${colors.sidebarBorder}`, borderRadius: '10px', overflow: 'hidden' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderBottom: `1px solid ${colors.sidebarBorder}`, background: 'rgba(255,140,0,0.08)' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <CloudSun size={13} color={colors.accent} />
+                                        <span style={{ fontSize: '11px', fontWeight: 800, color: colors.text, letterSpacing: '0.5px' }}>HAVA DURUMU</span>
+                                    </div>
+                                    <select value={weatherCity} onChange={(e) => { setWeatherCity(e.target.value); localStorage.setItem('softigo_weather_city', e.target.value); fetchWidgetData(e.target.value); }} style={{ fontSize: '10px', padding: '1px 2px', borderRadius: '4px', border: `1px solid ${colors.inputBorder}`, outline: 'none', backgroundColor: colors.inputBg, color: colors.text }}>
+                                        <option value="Istanbul">İstanbul</option>
+                                        <option value="Ankara">Ankara</option>
+                                        <option value="Izmir">İzmir</option>
+                                        <option value="Bursa">Bursa</option>
+                                        <option value="Antalya">Antalya</option>
+                                        <option value="Adana">Adana</option>
+                                    </select>
+                                </div>
+                                <div style={{ padding: '16px 12px', textAlign: 'center' }}>
+                                    <div style={{ fontSize: '32px', fontWeight: 700, color: colors.text }}>{widgetData.weather?.temp}°C</div>
+                                    <div style={{ fontSize: '13px', color: colors.subtext, marginTop: '4px' }}>{widgetData.weather?.desc}</div>
+                                    <div style={{ fontSize: '11px', color: colors.accent, marginTop: '2px', fontWeight: 600 }}>{widgetData.weather?.city}</div>
+                                </div>
+                            </div>
+
+                            {/* Haberler */}
+                            <div style={{ border: `1px solid ${colors.sidebarBorder}`, borderRadius: '10px', overflow: 'hidden', flex: 1 }}>
+                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', borderBottom: `1px solid ${colors.sidebarBorder}`, background: 'rgba(255,140,0,0.08)' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <Globe2 size={13} color={colors.accent} />
+                                        <span style={{ fontSize: '11px', fontWeight: 800, color: colors.text, letterSpacing: '0.5px' }}>HABERLER</span>
+                                    </div>
+                                    <ChevronRight size={14} color={colors.subtext} />
+                                </div>
+                                <div style={{ padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto' }}>
+                                    {widgetData.news.length > 0 ? widgetData.news.map((item: any, idx: number) => (
+                                        <a key={idx} href={item.link} target="_blank" rel="noopener noreferrer" style={{ fontSize: '11px', color: colors.subtext, fontWeight: 500, lineHeight: 1.5, paddingBottom: '8px', borderBottom: `1px solid ${colors.mailListBorder}`, textDecoration: 'none', display: 'block' }}
+                                            onMouseOver={(e) => (e.currentTarget.style.color = colors.accent)}
+                                            onMouseOut={(e) => (e.currentTarget.style.color = colors.subtext)}>
+                                            {item.title}
+                                        </a>
+                                    )) : <div style={{ fontSize: '12px', color: colors.subtext }}>Yükleniyor...</div>}
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                </div>
             )}
-
-            {/* ACTION BAR - Desktop Only */}
-            {!isMobile && <div style={{ height: '48px', backgroundColor: colors.headerBg, borderBottom: `1px solid ${colors.mailListBorder}`, display: 'flex', alignItems: 'center', padding: '0 16px', gap: '8px', flexShrink: 0 }}>
-                <button onClick={() => setIsComposeOpen(true)} style={{ backgroundColor: colors.accent, color: 'white', border: 'none', padding: '6px 16px', borderRadius: '4px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Send size={14} /> Oluştur
-                </button>
-                <button onClick={() => fetchMails(selectedFolder)} style={{ background: 'none', border: 'none', color: colors.subtext, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '14px', fontWeight: 500, marginLeft: '8px' }}>
-                    <RefreshCw size={14} /> Yenile
-                </button>
-
-                <div style={{ width: '1px', height: '24px', backgroundColor: colors.mailListBorder, margin: '0 8px' }} />
-
-                <div
-                    onClick={toggleSelectAll}
-                    style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '6px', borderRadius: '4px', backgroundColor: selectedUids.length > 0 ? '#F1F5F9' : 'transparent' }}
-                    title="Tümünü Seç/Kaldır"
-                >
-                    {selectedUids.length === filteredMails.length && filteredMails.length > 0 ? (
-                        <CheckSquare size={18} style={{ color: '#0057B7' }} />
-                    ) : (
-                        <Square size={18} style={{ color: '#94A3B8' }} />
-                    )}
-                </div>
-
-                {/* MAIL ACTIONS */}
-                <div style={{ width: '1px', height: '24px', backgroundColor: '#E2E8F0', margin: '0 8px' }} />
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <button
-                        onClick={() => selectedMail && handleReplyMail(selectedMail)}
-                        disabled={!selectedMail}
-                        title="Yanıtla"
-                        style={{ background: 'none', border: 'none', color: selectedMail ? '#475569' : '#CBD5E1', cursor: selectedMail ? 'pointer' : 'default', padding: '6px', borderRadius: '4px', display: 'flex', alignItems: 'center' }}
-                    >
-                        <Reply size={18} />
-                    </button>
-                    <button
-                        disabled={!selectedMail}
-                        title="İlet"
-                        style={{ background: 'none', border: 'none', color: selectedMail ? '#475569' : '#CBD5E1', cursor: selectedMail ? 'pointer' : 'default', padding: '6px', borderRadius: '4px', display: 'flex', alignItems: 'center' }}
-                    >
-                        <ArrowRight size={18} />
-                    </button>
-                    <button
-                        onClick={() => {
-                            const uids = selectedUids.length > 0 ? selectedUids.join(',') : selectedMail?.uid;
-                            if (uids) handleArchiveMail(uids);
-                        }}
-                        disabled={!(selectedMail || selectedUids.length > 0)}
-                        title="Arşivle"
-                        style={{ background: 'none', border: 'none', color: (selectedMail || selectedUids.length > 0) ? '#475569' : '#CBD5E1', cursor: (selectedMail || selectedUids.length > 0) ? 'pointer' : 'default', padding: '6px', borderRadius: '4px', display: 'flex', alignItems: 'center' }}
-                    >
-                        <Archive size={18} />
-                    </button>
-                    <button
-                        onClick={() => {
-                            const uids = selectedUids.length > 0 ? selectedUids.join(',') : selectedMail?.uid;
-                            if (uids) handleMarkAsSpam(uids);
-                        }}
-                        disabled={!(selectedMail || selectedUids.length > 0)}
-                        title="Spam"
-                        style={{ background: 'none', border: 'none', color: (selectedMail || selectedUids.length > 0) ? '#475569' : '#CBD5E1', cursor: (selectedMail || selectedUids.length > 0) ? 'pointer' : 'default', padding: '6px', borderRadius: '4px', display: 'flex', alignItems: 'center' }}
-                    >
-                        <AlertOctagon size={18} />
-                    </button>
-                    <button
-                        onClick={() => {
-                            const uids = selectedUids.length > 0 ? selectedUids.join(',') : selectedMail?.uid;
-                            if (uids) handleDeleteMail(uids);
-                        }}
-                        disabled={!(selectedMail || selectedUids.length > 0)}
-                        title="Sil"
-                        style={{ background: 'none', border: 'none', color: (selectedMail || selectedUids.length > 0) ? '#EF4444' : '#CBD5E1', cursor: (selectedMail || selectedUids.length > 0) ? 'pointer' : 'default', padding: '6px', borderRadius: '4px', display: 'flex', alignItems: 'center' }}
-                    >
-                        <Trash2 size={18} />
-                    </button>
-                </div>
-
-                <div style={{ width: '1px', height: '24px', backgroundColor: '#E2E8F0', margin: '0 8px' }} />
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <button
-                        onClick={() => handleNavigate('prev')}
-                        disabled={!selectedMail || filteredMails.findIndex(m => m.uid === selectedMail.uid) <= 0}
-                        title="Önceki"
-                        style={{ background: 'none', border: 'none', color: (!selectedMail || filteredMails.findIndex(m => m.uid === selectedMail.uid) <= 0) ? '#CBD5E1' : '#475569', cursor: 'pointer', padding: '6px', borderRadius: '4px' }}
-                    >
-                        <ChevronLeft size={20} />
-                    </button>
-                    <button
-                        onClick={() => handleNavigate('next')}
-                        disabled={!selectedMail || filteredMails.findIndex(m => m.uid === selectedMail.uid) === (filteredMails.length - 1)}
-                        title="Sonraki"
-                        style={{ background: 'none', border: 'none', color: (!selectedMail || filteredMails.findIndex(m => m.uid === selectedMail.uid) === (filteredMails.length - 1)) ? '#CBD5E1' : '#475569', cursor: 'pointer', padding: '6px', borderRadius: '4px' }}
-                    >
-                        <ChevronRight size={20} />
-                    </button>
-                </div>
-
-                <div style={{ flex: 1 }} />
-                <div style={{ display: 'flex', alignItems: 'center', backgroundColor: colors.inputBg, border: `1px solid ${colors.inputBorder}`, borderRadius: '4px', padding: '6px 12px', width: '320px' }}>
-                    <Search size={16} style={{ color: colors.subtext }} />
-                    <input type="text" placeholder="E-postalarda ara..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ border: 'none', background: 'none', outline: 'none', marginLeft: '8px', fontSize: '14px', width: '100%', color: colors.text }} />
-                </div>
-            </div>}
 
             {/* MOBILE SEARCH BAR */}
             {isMobile && mobileView === 'list' && (
