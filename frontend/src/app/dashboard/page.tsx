@@ -457,7 +457,7 @@ export default function Dashboard() {
             {isMobile && mobileView !== 'detail' && (
                 <header style={{ height: '60px', backgroundColor: colors.headerBg, borderBottom: `1px solid ${colors.sidebarBorder}`, display: 'flex', alignItems: 'center', padding: '0 20px', justifyContent: 'space-between', flexShrink: 0, zIndex: 100 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <img src="/logo.png" alt="Softigo" style={{ height: '28px' }} />
+                        <img src="/logo.png" alt="Softigo" style={{ height: '56px' }} />
                         <span style={{ fontWeight: 700, fontSize: '20px', color: colors.text, letterSpacing: '-0.3px' }}>Softigo Mail</span>
                     </div>
                     <button onClick={() => setIsComposeOpen(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -496,7 +496,7 @@ export default function Dashboard() {
                         display: 'flex', alignItems: 'center', padding: '0 16px', gap: '12px',
                         flexShrink: 0, zIndex: 100
                     }}>
-                        <img src="/logo.png" alt="Softigo" style={{ height: '36px', filter: 'drop-shadow(0 0 8px rgba(255,140,0,0.3))' }} />
+                        <img src="/logo.png" alt="Softigo" style={{ height: '72px', filter: 'drop-shadow(0 0 8px rgba(255,140,0,0.3))' }} />
                         <div style={{ flex: 1, display: 'flex', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,140,0,0.2)', borderRadius: '8px', padding: '6px 12px', gap: '8px', maxWidth: '400px' }}>
                             <Search size={15} style={{ color: colors.subtext }} />
                             <input type="text" placeholder="E-postaları ara..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ border: 'none', background: 'none', outline: 'none', fontSize: '13px', width: '100%', color: colors.text }} />
@@ -659,7 +659,7 @@ export default function Dashboard() {
                                 </div>
                             ) : (
                                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: colors.subtext }}>
-                                    <img src="/logo.png" alt="Softigo" style={{ height: '100px', opacity: 0.12, marginBottom: '16px', filter: 'grayscale(30%)' }} />
+                                    <img src="/logo.png" alt="Softigo" style={{ height: '200px', opacity: 0.12, marginBottom: '16px', filter: 'grayscale(30%)' }} />
                                     <p style={{ fontSize: '15px', fontWeight: 500 }}>Görüntülenecek bir ileti seçin</p>
                                 </div>
                             )}
