@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Lock, Mail, ArrowRight, Shield, Settings, Server, Hash, Sun, Moon, MapPin, Cloud, ShieldCheck, CheckCircle2, ChevronRight, Phone } from "lucide-react";
+import { Lock, Mail, ArrowRight, Shield, Settings, Server, Hash, MapPin, Cloud, ShieldCheck, CheckCircle2, ChevronRight, Phone } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 
 export default function LoginPage() {
     const router = useRouter();
-    const { theme, toggleTheme, colors } = useTheme();
+    const { theme, colors } = useTheme();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [credentials, setCredentials] = useState({
@@ -112,63 +112,40 @@ export default function LoginPage() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: theme === 'dark'
-                ? 'radial-gradient(circle at 50% 50%, #1a2a4a 0%, #0a0e1a 100%)'
-                : 'radial-gradient(circle at 50% 50%, #f0f4f8 0%, #d1d5db 100%)',
+            background: 'radial-gradient(circle at 50% 100%, #1a0800 0%, #050209 100%)',
             color: colors.text,
             position: 'relative',
             overflow: 'hidden',
-            transition: 'background-color 0.3s ease, color 0.3s ease'
         }}>
             {/* Nebula / Galaxy Effect Overlay */}
-            {theme === 'dark' && (
-                <>
-                    <div style={{
+            <>
+                <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'radial-gradient(circle at 80% 90%, rgba(255, 140, 0, 0.25) 0%, transparent 40%), radial-gradient(circle at 10% 80%, rgba(255, 140, 0, 0.15) 0%, transparent 30%), radial-gradient(circle at 50% 10%, rgba(200, 100, 0, 0.1) 0%, transparent 40%)',
+                    pointerEvents: 'none',
+                    zIndex: 1
+                }} />
+                {/* Stars */}
+                {[...Array(50)].map((_, i) => (
+                    <div key={i} style={{
                         position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background: 'radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.15) 0%, transparent 40%), radial-gradient(circle at 80% 70%, rgba(249, 115, 22, 0.1) 0%, transparent 40%)',
-                        pointerEvents: 'none',
+                        left: `${Math.random() * 100}%`,
+                        top: `${Math.random() * 100}%`,
+                        width: `${Math.random() * 2}px`,
+                        height: `${Math.random() * 2}px`,
+                        backgroundColor: 'white',
+                        borderRadius: '50%',
+                        opacity: Math.random() * 0.5 + 0.2,
+                        animation: `twinkle ${Math.random() * 3 + 2}s infinite alternate`,
                         zIndex: 1
                     }} />
-                    {/* Stars */}
-                    {[...Array(50)].map((_, i) => (
-                        <div key={i} style={{
-                            position: 'absolute',
-                            left: `${Math.random() * 100}%`,
-                            top: `${Math.random() * 100}%`,
-                            width: `${Math.random() * 2}px`,
-                            height: `${Math.random() * 2}px`,
-                            backgroundColor: 'white',
-                            borderRadius: '50%',
-                            opacity: Math.random() * 0.5 + 0.2,
-                            animation: `twinkle ${Math.random() * 3 + 2}s infinite alternate`,
-                            zIndex: 1
-                        }} />
-                    ))}
-                </>
-            )}
-            {/* Theme Toggle Button */}
-            <button
-                onClick={toggleTheme}
-                style={{
-                    position: 'absolute',
-                    top: '24px',
-                    right: '24px',
-                    zIndex: 20,
-                    padding: '10px',
-                    backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-                    borderRadius: '50%',
-                    border: `1px solid ${theme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
-                    color: colors.text,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                }}
-            >
-                {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
+                ))}
+            </>
+            {/* Theme Toggle Button Removed */}
 
             {/* Background Gradient */}
             <div style={{
