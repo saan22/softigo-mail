@@ -124,8 +124,12 @@ export default function Dashboard() {
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/widgets/data?city=${encodeURIComponent(city)}`);
             const result = await response.json();
-            if (result.success) {
-                setWidgetData(result.data);
+            if (result.success && result.data) {
+                setWidgetData({
+                    rates: result.data.rates || [],
+                    weather: result.data.weather || { temp: "--", desc: "Bulunamadı", city: city },
+                    news: result.data.news || []
+                });
             }
         } catch (error) {
             console.error("Widget verisi çekme hatası:", error);
