@@ -485,7 +485,7 @@ export default function Dashboard() {
             {!isMobile && (
                 <header style={{ height: '42px', background: `linear-gradient(90deg, #1a0800 0%, #2a1000 100%)`, borderBottom: `1px solid ${colors.accent}44`, color: 'white', display: 'flex', alignItems: 'center', padding: '0 16px', fontSize: '12px', zIndex: 100, flexShrink: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1 }}>
-                        <span style={{ fontWeight: 600, fontSize: '14px', color: colors.accent }}>Softigo BulutMail</span>
+                        <span style={{ fontWeight: 600, fontSize: '14px', color: colors.accent }}>Softigo Business Mail</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <span style={{ color: colors.subtext }}>{userEmail}</span>
@@ -620,9 +620,9 @@ export default function Dashboard() {
                     overflowY: 'auto'
                 }}>
                     <div style={{ padding: isMobile ? '24px 20px' : '32px 16px', marginBottom: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px' }}>
-                        <img src="/logo.png" alt="SOFTIGO" style={{ height: isMobile ? '64px' : '96px' }} />
+                        <img src="/logo.png" alt="SOFTIGO" style={{ height: isMobile ? '64px' : '96px', background: 'rgba(255,255,255,0.9)', borderRadius: '10px', padding: '6px' }} />
                         {isMobile && <div>
-                            <div style={{ fontSize: '18px', fontWeight: 800, color: colors.accent }}>BulutMail</div>
+                            <div style={{ fontSize: '18px', fontWeight: 800, color: colors.accent }}>Business Mail</div>
                             <div style={{ fontSize: '13px', color: colors.subtext, marginTop: '2px' }}>{userEmail}</div>
                         </div>}
                     </div>
