@@ -693,13 +693,31 @@ export default function Dashboard() {
                                         <CloudSun size={13} color={colors.accent} />
                                         <span style={{ fontSize: '11px', fontWeight: 800, color: colors.text, letterSpacing: '0.5px' }}>HAVA DURUMU</span>
                                     </div>
-                                    <select value={weatherCity} onChange={(e) => { setWeatherCity(e.target.value); localStorage.setItem('softigo_weather_city', e.target.value); fetchWidgetData(e.target.value); }} style={{ fontSize: '10px', padding: '1px 2px', borderRadius: '4px', border: `1px solid ${colors.inputBorder}`, outline: 'none', backgroundColor: colors.inputBg, color: colors.text }}>
-                                        <option value="Istanbul">İstanbul</option>
-                                        <option value="Ankara">Ankara</option>
-                                        <option value="Izmir">İzmir</option>
-                                        <option value="Bursa">Bursa</option>
-                                        <option value="Antalya">Antalya</option>
-                                        <option value="Adana">Adana</option>
+                                    <select
+                                        value={weatherCity}
+                                        onChange={(e) => {
+                                            setWeatherCity(e.target.value);
+                                            localStorage.setItem('softigo_weather_city', e.target.value);
+                                            fetchWidgetData(e.target.value);
+                                        }}
+                                        style={{
+                                            fontSize: '11px',
+                                            padding: '2px 6px',
+                                            borderRadius: '6px',
+                                            border: `1px solid ${colors.accent}66`,
+                                            outline: 'none',
+                                            backgroundColor: '#1E1B24',
+                                            color: colors.text,
+                                            cursor: 'pointer',
+                                            colorScheme: 'dark'
+                                        }}
+                                    >
+                                        <option value="Istanbul" style={{ backgroundColor: '#1E1B24', color: '#fff' }}>İstanbul</option>
+                                        <option value="Ankara" style={{ backgroundColor: '#1E1B24', color: '#fff' }}>Ankara</option>
+                                        <option value="Izmir" style={{ backgroundColor: '#1E1B24', color: '#fff' }}>İzmir</option>
+                                        <option value="Bursa" style={{ backgroundColor: '#1E1B24', color: '#fff' }}>Bursa</option>
+                                        <option value="Antalya" style={{ backgroundColor: '#1E1B24', color: '#fff' }}>Antalya</option>
+                                        <option value="Adana" style={{ backgroundColor: '#1E1B24', color: '#fff' }}>Adana</option>
                                     </select>
                                 </div>
                                 <div style={{ padding: '16px 12px', textAlign: 'center' }}>
