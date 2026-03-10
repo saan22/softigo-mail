@@ -541,11 +541,16 @@ export default function Dashboard() {
                                                 {getInitials(mail.from || 'U')}
                                             </div>
                                             <div style={{ flex: 1, minWidth: 0 }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                                                    <span style={{ fontSize: '15px', fontWeight: mail.flags?.includes('\\Seen') ? 500 : 800, color: colors.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{getDisplayName(mail.from || '')}</span>
-                                                    <span style={{ fontSize: '12px', color: colors.subtext }}>{formatMailDate(mail.date)}</span>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', alignItems: 'center' }}>
+                                                    <span style={{ fontSize: '15px', fontWeight: mail.flags?.includes('\\Seen') ? 500 : 900, color: colors.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{getDisplayName(mail.from || '')}</span>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                                        <span style={{ fontSize: '11px', color: colors.subtext }}>{formatMailDate(mail.date)}</span>
+                                                        {!mail.flags?.includes('\\Seen') && (
+                                                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: colors.accent, boxShadow: `0 0 10px ${colors.accent}` }} />
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <div style={{ fontSize: '14px', fontWeight: mail.flags?.includes('\\Seen') ? 400 : 700, color: colors.subtext, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{mail.subject || '(Konu Yok)'}</div>
+                                                <div style={{ fontSize: '14px', fontWeight: mail.flags?.includes('\\Seen') ? 400 : 700, color: mail.flags?.includes('\\Seen') ? colors.subtext : colors.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{mail.subject || '(Konu Yok)'}</div>
                                             </div>
                                             <ChevronRight size={18} color={colors.subtext} />
                                         </div>
@@ -706,10 +711,15 @@ export default function Dashboard() {
                                         </div>
                                         <div style={{ flex: 1, minWidth: 0 }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
-                                                <span style={{ fontSize: '12px', fontWeight: mail.flags?.includes('\\Seen') ? 500 : 700, color: colors.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '140px' }}>{mail.from?.split('<')[0].trim() || mail.from}</span>
-                                                <span style={{ fontSize: '11px', color: colors.subtext, flexShrink: 0, marginLeft: '4px' }}>{new Date(mail.date).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+                                                <span style={{ fontSize: '12px', fontWeight: mail.flags?.includes('\\Seen') ? 500 : 900, color: mail.flags?.includes('\\Seen') ? colors.text : '#FFFFFF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '140px' }}>{mail.from?.split('<')[0].trim() || mail.from}</span>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                    <span style={{ fontSize: '10px', color: colors.subtext, flexShrink: 0 }}>{new Date(mail.date).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })}</span>
+                                                    {!mail.flags?.includes('\\Seen') && (
+                                                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: colors.accent, boxShadow: `0 0 8px ${colors.accent}` }} />
+                                                    )}
+                                                </div>
                                             </div>
-                                            <div style={{ fontSize: '12px', fontWeight: mail.flags?.includes('\\Seen') ? 400 : 600, color: colors.subtext, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{mail.subject || '(Konu Yok)'}</div>
+                                            <div style={{ fontSize: '12px', fontWeight: mail.flags?.includes('\\Seen') ? 400 : 700, color: mail.flags?.includes('\\Seen') ? colors.subtext : colors.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{mail.subject || '(Konu Yok)'}</div>
                                         </div>
                                     </div>
                                 ))
