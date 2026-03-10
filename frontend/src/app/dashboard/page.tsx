@@ -499,7 +499,7 @@ export default function Dashboard() {
                         display: 'flex', alignItems: 'center', padding: '0 16px', gap: '12px',
                         flexShrink: 0, zIndex: 100
                     }}>
-                        <img src="/logo.png" alt="Softigo" style={{ height: '36px', background: 'rgba(255,255,255,0.95)', borderRadius: '8px', padding: '2px 8px' }} />
+                        <img src="/logo.png" alt="Softigo" style={{ height: '36px', filter: 'drop-shadow(0 0 8px rgba(255,140,0,0.3))' }} />
                         <div style={{ flex: 1, display: 'flex', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,140,0,0.2)', borderRadius: '8px', padding: '6px 12px', gap: '8px', maxWidth: '400px' }}>
                             <Search size={15} style={{ color: colors.subtext }} />
                             <input type="text" placeholder="E-postaları ara..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ border: 'none', background: 'none', outline: 'none', fontSize: '13px', width: '100%', color: colors.text }} />
@@ -758,7 +758,7 @@ export default function Dashboard() {
                     overflowY: 'auto'
                 }}>
                     <div style={{ padding: isMobile ? '24px 20px' : '32px 16px', marginBottom: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px' }}>
-                        <img src="/logo.png" alt="SOFTIGO" style={{ height: isMobile ? '64px' : '96px', background: 'rgba(255,255,255,0.9)', borderRadius: '10px', padding: '6px' }} />
+                        <img src="/logo.png" alt="SOFTIGO" style={{ height: isMobile ? '64px' : '96px', filter: 'drop-shadow(0 0 12px rgba(255,140,0,0.25))' }} />
                         {isMobile && <div>
                             <div style={{ fontSize: '18px', fontWeight: 800, color: colors.accent }}>Business Mail</div>
                             <div style={{ fontSize: '13px', color: colors.subtext, marginTop: '2px' }}>{userEmail}</div>

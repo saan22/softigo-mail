@@ -170,17 +170,16 @@ export default function LoginPage() {
                 {/* Logo Section */}
                 <div style={{ textAlign: 'center', marginBottom: '16px', marginTop: '40px' }}>
                     <div style={{ marginBottom: '0px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <div style={{ background: 'rgba(255,255,255,0.95)', borderRadius: '16px', padding: '12px 24px', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
-                            <img
-                                src="/logo.png"
-                                alt="Softigo Business Mail"
-                                style={{
-                                    height: isMobile ? '100px' : '140px',
-                                    width: 'auto',
-                                    display: 'block'
-                                }}
-                            />
-                        </div>
+                        <img
+                            src="/logo.png"
+                            alt="Softigo Business Mail"
+                            style={{
+                                height: isMobile ? '100px' : '140px',
+                                width: 'auto',
+                                display: 'block',
+                                filter: 'drop-shadow(0 4px 24px rgba(255,140,0,0.25))'
+                            }}
+                        />
                     </div>
                 </div>
 
