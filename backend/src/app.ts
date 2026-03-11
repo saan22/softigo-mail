@@ -1184,15 +1184,18 @@ fastify.get('/api/quota', async (request, reply) => {
 
         await client.connect();
 
-        let quota = null;
+        let storage = null;
         try {
-            // IMAP QUOTA extension
-            quota = await client.getQuota('INBOX');
+            const quotaRes = await client.getQuota('INBOX') as any;
+            if (quotaRes && quotaRes.resources) {
+                storage = quotaRes.resources.STORAGE || quotaRes.resources.storage || null;
+            }
+            console.log(`📊 Raw Quota for ${sessionData.email}:`, JSON.stringify(quotaRes));
         } catch (e: any) {
             console.warn("Quota not supported or failed:", e.message);
         }
 
-        return { success: true, quota };
+        return { success: true, storage };
     } catch (error: any) {
         console.error("Quota hatası:", error);
         reply.status(500).send({ error: error.message });
