@@ -1188,8 +1188,10 @@ fastify.get('/api/quota', async (request, reply) => {
         let quotaRes = null;
 
         try {
-            // Attempt 1: INBOX
+            // Attempt 1: getQuota Root for INBOX
             quotaRes = await client.getQuota('INBOX') as any;
+            console.log(`🔍 RAW Quota Response (INBOX):`, JSON.stringify(quotaRes));
+            
             if (quotaRes && quotaRes.resources) {
                 storage = quotaRes.resources.STORAGE || quotaRes.resources.storage;
                 if (!storage) {
