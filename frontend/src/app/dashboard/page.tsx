@@ -41,6 +41,7 @@ export default function Dashboard() {
     });
     const fileInputRef = useRef<HTMLInputElement>(null);
     const fetchIdRef = useRef(0); // Race condition guard
+    const [quota, setQuota] = useState<{ used: number, limit: number } | null>(null);
 
     const handleNavigate = (direction: 'prev' | 'next') => {
         if (!selectedMail) return;
@@ -111,6 +112,7 @@ export default function Dashboard() {
         const storedCity = localStorage.getItem("softigo_weather_city") || "Istanbul";
         setWeatherCity(storedCity);
         fetchWidgetData(storedCity);
+        fetchQuota();
     }, []); // Empty deps = mount only, router is stable within session
 
     // Re-fetch mails only when selected folder changes
@@ -133,6 +135,25 @@ export default function Dashboard() {
             }
         } catch (error) {
             console.error("Widget verisi çekme hatası:", error);
+        }
+    };
+
+    const fetchQuota = async () => {
+        const token = localStorage.getItem("softigo_token");
+        if (!token) return;
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/quota`, {
+                headers: { "Authorization": token }
+            });
+            const result = await response.json();
+            if (result.success && result.quota && result.quota.storage) {
+                setQuota({
+                    used: result.quota.storage.used,
+                    limit: result.quota.storage.limit
+                });
+            }
+        } catch (error) {
+            console.error("Quota fetch error:", error);
         }
     };
 
@@ -251,6 +272,7 @@ export default function Dashboard() {
                 setSelectedMail(null);
                 setSelectedUids([]);
                 fetchMails(selectedFolder);
+                fetchQuota();
             }
         } catch (error) {
             console.error("Silme hatası:", error);
@@ -672,6 +694,26 @@ export default function Dashboard() {
                                     })}
                                 </div>
                             </div>
+                            {/* Quota Section */}
+                            {quota && (
+                                <div style={{ padding: '12px 16px', borderTop: `1px solid ${colors.sidebarBorder}` }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: colors.subtext, marginBottom: '6px' }}>
+                                        <span style={{ fontWeight: 600 }}>{(quota.used / (1024 * 1024 * 1024)).toFixed(1)} GB kullanılıyor</span>
+                                        <span style={{ fontWeight: 600 }}>{(quota.limit / (1024 * 1024 * 1024)).toFixed(0)} GB</span>
+                                    </div>
+                                    <div style={{ height: '6px', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden', border: '1px solid rgba(255,140,0,0.1)' }}>
+                                        <div style={{
+                                            height: '100%',
+                                            width: `${Math.min(100, (quota.used / quota.limit) * 100)}%`,
+                                            background: `linear-gradient(90deg, ${colors.accent}, #FFB200)`,
+                                            boxShadow: `0 0 10px ${colors.accent}44`,
+                                            borderRadius: '3px',
+                                            transition: 'width 0.5s ease-out'
+                                        }} />
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Sidebar bottom icons */}
                             <div style={{ padding: '12px', borderTop: `1px solid ${colors.sidebarBorder}`, display: 'flex', justifyContent: 'space-around' }}>
                                 <button title="Ayarlar" style={{ background: 'none', border: 'none', color: colors.subtext, cursor: 'pointer', padding: '8px', borderRadius: '8px' }}><Settings size={18} /></button>

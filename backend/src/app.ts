@@ -177,8 +177,10 @@ fastify.post('/api/login', async (request, reply) => {
         const strategies = [
             { h: `mail.${domain}`, p: 993, s: true },
             { h: `imap.${domain}`, p: 993, s: true },
+            { h: domain, p: 993, s: true },
             { h: `mail.${domain}`, p: 143, s: false },
-            { h: `imap.${domain}`, p: 143, s: false }
+            { h: `imap.${domain}`, p: 143, s: false },
+            { h: domain, p: 143, s: false }
         ];
 
         try {
@@ -1157,6 +1159,42 @@ ${html}`;
         return { success: true, message: 'Taslak güncellendi' };
     } catch (error: any) {
         console.error("Taslak güncelleme hatası:", error);
+        reply.status(500).send({ error: error.message });
+    } finally {
+        if (client) await client.logout();
+    }
+});
+
+// Quota API
+fastify.get('/api/quota', async (request, reply) => {
+    const token = request.headers['authorization'];
+    if (!token) return reply.status(401).send({ error: 'Yetkisiz erişim' });
+
+    let client: ImapFlow | null = null;
+    try {
+        const sessionData = JSON.parse(CryptoService.decrypt(token));
+        client = new ImapFlow({
+            host: sessionData.host || process.env.IMAP_HOST,
+            port: parseInt(sessionData.port || process.env.IMAP_PORT),
+            secure: sessionData.secure ?? (process.env.IMAP_SECURE === 'true'),
+            auth: { user: sessionData.email, pass: sessionData.password },
+            tls: { rejectUnauthorized: false },
+            logger: false
+        });
+
+        await client.connect();
+
+        let quota = null;
+        try {
+            // IMAP QUOTA extension
+            quota = await client.getQuota('INBOX');
+        } catch (e: any) {
+            console.warn("Quota not supported or failed:", e.message);
+        }
+
+        return { success: true, quota };
+    } catch (error: any) {
+        console.error("Quota hatası:", error);
         reply.status(500).send({ error: error.message });
     } finally {
         if (client) await client.logout();
