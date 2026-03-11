@@ -146,10 +146,10 @@ export default function Dashboard() {
                 headers: { "Authorization": token }
             });
             const result = await response.json();
-            if (result.success && result.quota && result.quota.storage) {
+            if (result.success && result.storage) {
                 setQuota({
-                    used: result.quota.storage.used,
-                    limit: result.quota.storage.limit
+                    used: result.storage.used,
+                    limit: result.storage.limit
                 });
             }
         } catch (error) {
@@ -698,13 +698,29 @@ export default function Dashboard() {
                             {quota && (
                                 <div style={{ padding: '12px 16px', borderTop: `1px solid ${colors.sidebarBorder}` }}>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: colors.subtext, marginBottom: '6px' }}>
-                                        <span style={{ fontWeight: 600 }}>{(quota.used / (1024 * 1024 * 1024)).toFixed(1)} GB kullanılıyor</span>
-                                        <span style={{ fontWeight: 600 }}>{(quota.limit / (1024 * 1024 * 1024)).toFixed(0)} GB</span>
+                                        <span style={{ fontWeight: 600 }}>
+                                            {(() => {
+                                                const kb = quota.used;
+                                                if (kb >= 1024 * 1024) return `${(kb / (1024 * 1024)).toFixed(2)} GB`;
+                                                if (kb >= 1024) return `${(kb / 1024).toFixed(2)} MB`;
+                                                return `${kb.toFixed(2)} KB`;
+                                            })()} kullanılıyor
+                                        </span>
+                                        <span style={{ fontWeight: 600 }}>
+                                            {quota.limit > 0
+                                                ? (() => {
+                                                    const kb = quota.limit;
+                                                    if (kb >= 1024 * 1024) return `${(kb / (1024 * 1024)).toFixed(0)} GB`;
+                                                    if (kb >= 1024) return `${(kb / 1024).toFixed(0)} MB`;
+                                                    return `${kb.toFixed(0)} KB`;
+                                                })()
+                                                : '∞'}
+                                        </span>
                                     </div>
                                     <div style={{ height: '6px', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden', border: '1px solid rgba(255,140,0,0.1)' }}>
                                         <div style={{
                                             height: '100%',
-                                            width: `${Math.min(100, (quota.used / quota.limit) * 100)}%`,
+                                            width: `${quota.limit > 0 ? Math.min(100, (quota.used / quota.limit) * 100) : 0}%`,
                                             background: `linear-gradient(90deg, ${colors.accent}, #FFB200)`,
                                             boxShadow: `0 0 10px ${colors.accent}44`,
                                             borderRadius: '3px',
