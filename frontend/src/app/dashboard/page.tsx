@@ -931,18 +931,18 @@ export default function Dashboard() {
                                             borderRadius: '6px',
                                             border: `1px solid ${colors.accent}66`,
                                             outline: 'none',
-                                            backgroundColor: '#1E1B24',
+                                            backgroundColor: colors.bg,
                                             color: colors.text,
                                             cursor: 'pointer',
-                                            colorScheme: 'dark'
+                                            colorScheme: theme === 'dark' ? 'dark' : 'light'
                                         }}
                                     >
-                                        <option value="Istanbul" style={{ backgroundColor: '#1E1B24', color: '#fff' }}>İstanbul</option>
-                                        <option value="Ankara" style={{ backgroundColor: '#1E1B24', color: '#fff' }}>Ankara</option>
-                                        <option value="Izmir" style={{ backgroundColor: '#1E1B24', color: '#fff' }}>İzmir</option>
-                                        <option value="Bursa" style={{ backgroundColor: '#1E1B24', color: '#fff' }}>Bursa</option>
-                                        <option value="Antalya" style={{ backgroundColor: '#1E1B24', color: '#fff' }}>Antalya</option>
-                                        <option value="Adana" style={{ backgroundColor: '#1E1B24', color: '#fff' }}>Adana</option>
+                                        <option value="Istanbul" style={{ backgroundColor: colors.bg, color: colors.text }}>İstanbul</option>
+                                        <option value="Ankara" style={{ backgroundColor: colors.bg, color: colors.text }}>Ankara</option>
+                                        <option value="Izmir" style={{ backgroundColor: colors.bg, color: colors.text }}>İzmir</option>
+                                        <option value="Bursa" style={{ backgroundColor: colors.bg, color: colors.text }}>Bursa</option>
+                                        <option value="Antalya" style={{ backgroundColor: colors.bg, color: colors.text }}>Antalya</option>
+                                        <option value="Adana" style={{ backgroundColor: colors.bg, color: colors.text }}>Adana</option>
                                     </select>
                                 </div>
                                 <div style={{ padding: '16px 12px', textAlign: 'center' }}>
