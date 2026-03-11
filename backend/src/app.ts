@@ -1188,9 +1188,18 @@ fastify.get('/api/quota', async (request, reply) => {
         try {
             const quotaRes = await client.getQuota('INBOX') as any;
             if (quotaRes && quotaRes.resources) {
-                storage = quotaRes.resources.STORAGE || quotaRes.resources.storage || null;
+                // Priority 1: standard STORAGE
+                storage = quotaRes.resources.STORAGE || quotaRes.resources.storage;
+
+                // Priority 2: if STORAGE not found, take ANY resource that has used and limit
+                if (!storage) {
+                    const firstResource = Object.values(quotaRes.resources)[0] as any;
+                    if (firstResource && typeof firstResource.used === 'number') {
+                        storage = firstResource;
+                    }
+                }
             }
-            console.log(`📊 Raw Quota for ${sessionData.email}:`, JSON.stringify(quotaRes));
+            console.log(`📊 Final Storage Data for ${sessionData.email}:`, JSON.stringify(storage));
         } catch (e: any) {
             console.warn("Quota not supported or failed:", e.message);
         }

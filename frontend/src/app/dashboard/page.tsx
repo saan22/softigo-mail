@@ -694,38 +694,61 @@ export default function Dashboard() {
                                     })}
                                 </div>
                             </div>
-                            {/* Quota Section */}
+                            {/* Quota Section (Styled as Widget Card) */}
                             {quota && (
-                                <div style={{ padding: '12px 16px', borderTop: `1px solid ${colors.sidebarBorder}` }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: colors.subtext, marginBottom: '6px' }}>
-                                        <span style={{ fontWeight: 600 }}>
-                                            {(() => {
-                                                const kb = quota.used;
-                                                if (kb >= 1024 * 1024) return `${(kb / (1024 * 1024)).toFixed(2)} GB`;
-                                                if (kb >= 1024) return `${(kb / 1024).toFixed(2)} MB`;
-                                                return `${kb.toFixed(2)} KB`;
-                                            })()} kullanılıyor
-                                        </span>
-                                        <span style={{ fontWeight: 600 }}>
-                                            {quota.limit > 0
-                                                ? (() => {
-                                                    const kb = quota.limit;
-                                                    if (kb >= 1024 * 1024) return `${(kb / (1024 * 1024)).toFixed(0)} GB`;
-                                                    if (kb >= 1024) return `${(kb / 1024).toFixed(0)} MB`;
-                                                    return `${kb.toFixed(0)} KB`;
-                                                })()
-                                                : '∞'}
-                                        </span>
+                                <div style={{
+                                    margin: '12px',
+                                    padding: '12px',
+                                    border: `1px solid ${colors.sidebarBorder}`,
+                                    borderRadius: '10px',
+                                    backgroundColor: 'rgba(255,140,0,0.03)',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '10px'
+                                }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: `1px solid ${colors.sidebarBorder}`, paddingBottom: '8px', marginBottom: '4px' }}>
+                                        <Info size={13} color={colors.accent} />
+                                        <span style={{ fontSize: '10px', fontWeight: 800, color: colors.text, letterSpacing: '0.8px', textTransform: 'uppercase' }}>DEPOLAMA KOTASI</span>
                                     </div>
-                                    <div style={{ height: '6px', backgroundColor: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden', border: '1px solid rgba(255,140,0,0.1)' }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                         <div style={{
-                                            height: '100%',
-                                            width: `${quota.limit > 0 ? Math.min(100, (quota.used / quota.limit) * 100) : 0}%`,
-                                            background: `linear-gradient(90deg, ${colors.accent}, #FFB200)`,
-                                            boxShadow: `0 0 10px ${colors.accent}44`,
-                                            borderRadius: '3px',
-                                            transition: 'width 0.5s ease-out'
-                                        }} />
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            fontSize: '11px',
+                                            fontWeight: 600,
+                                            color: colors.text,
+                                            backgroundColor: 'rgba(255,255,255,0.05)',
+                                            padding: '8px 10px',
+                                            borderRadius: '6px',
+                                            border: '1px solid rgba(255,140,0,0.1)'
+                                        }}>
+                                            {(() => {
+                                                const usedKb = quota.used;
+                                                const limitKb = quota.limit;
+
+                                                const format = (kb: number) => {
+                                                    if (kb >= 1024 * 1024) return `${(kb / (1024 * 1024)).toFixed(2)} GB`;
+                                                    if (kb >= 1024) return `${(kb / 1024).toFixed(2)} MB`;
+                                                    return `${kb.toFixed(2)} KB`;
+                                                };
+
+                                                const usedStr = format(usedKb);
+                                                const limitStr = limitKb > 0 ? format(limitKb) : '∞';
+                                                const percent = limitKb > 0 ? ((usedKb / limitKb) * 100).toFixed(2) : '0';
+
+                                                return `${usedStr} / ${limitStr}${limitKb > 0 ? ` / ${percent}%` : ''}`;
+                                            })()}
+                                        </div>
+                                        <div style={{ height: '6px', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
+                                            <div style={{
+                                                height: '100%',
+                                                width: `${quota.limit > 0 ? Math.min(100, (quota.used / quota.limit) * 100) : 0}%`,
+                                                background: `linear-gradient(90deg, ${colors.accent}, #FFB200)`,
+                                                boxShadow: `0 0 10px ${colors.accent}55`,
+                                                borderRadius: '3px',
+                                                transition: 'width 0.8s ease-out'
+                                            }} />
+                                        </div>
                                     </div>
                                 </div>
                             )}
