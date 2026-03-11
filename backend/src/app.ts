@@ -1185,21 +1185,27 @@ fastify.get('/api/quota', async (request, reply) => {
         await client.connect();
 
         let storage = null;
-        try {
-            const quotaRes = await client.getQuota('INBOX') as any;
-            if (quotaRes && quotaRes.resources) {
-                // Priority 1: standard STORAGE
-                storage = quotaRes.resources.STORAGE || quotaRes.resources.storage;
+        let quotaRes = null;
 
-                // Priority 2: if STORAGE not found, take ANY resource that has used and limit
+        try {
+            // Attempt 1: INBOX
+            quotaRes = await client.getQuota('INBOX') as any;
+            if (quotaRes && quotaRes.resources) {
+                storage = quotaRes.resources.STORAGE || quotaRes.resources.storage;
                 if (!storage) {
-                    const firstResource = Object.values(quotaRes.resources)[0] as any;
-                    if (firstResource && typeof firstResource.used === 'number') {
-                        storage = firstResource;
-                    }
+                    storage = Object.values(quotaRes.resources).find((r: any) => typeof r.used === 'number') || null;
                 }
             }
-            console.log(`📊 Final Storage Data for ${sessionData.email}:`, JSON.stringify(storage));
+
+            // Attempt 2: Account Root
+            if (!storage) {
+                quotaRes = await client.getQuota('') as any;
+                if (quotaRes && quotaRes.resources) {
+                    storage = quotaRes.resources.STORAGE || quotaRes.resources.storage ||
+                        Object.values(quotaRes.resources).find((r: any) => typeof r.used === 'number') || null;
+                }
+            }
+            console.log(`📊 Quota attempt for ${sessionData.email}:`, JSON.stringify(storage));
         } catch (e: any) {
             console.warn("Quota not supported or failed:", e.message);
         }

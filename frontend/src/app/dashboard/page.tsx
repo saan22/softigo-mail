@@ -42,6 +42,7 @@ export default function Dashboard() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const fetchIdRef = useRef(0); // Race condition guard
     const [quota, setQuota] = useState<{ used: number, limit: number } | null>(null);
+    const [quotaLoading, setQuotaLoading] = useState(false);
 
     const handleNavigate = (direction: 'prev' | 'next') => {
         if (!selectedMail) return;
@@ -141,11 +142,13 @@ export default function Dashboard() {
     const fetchQuota = async () => {
         const token = localStorage.getItem("softigo_token");
         if (!token) return;
+        setQuotaLoading(true);
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/quota`, {
                 headers: { "Authorization": token }
             });
             const result = await response.json();
+            console.log("📊 Frontend Quota Result:", result);
             if (result.success && result.storage) {
                 setQuota({
                     used: result.storage.used,
@@ -154,6 +157,8 @@ export default function Dashboard() {
             }
         } catch (error) {
             console.error("Quota fetch error:", error);
+        } finally {
+            setQuotaLoading(false);
         }
     };
 
@@ -695,7 +700,7 @@ export default function Dashboard() {
                                 </div>
                             </div>
                             {/* Quota Section (Styled as Widget Card) */}
-                            {quota && (
+                            {(quota || quotaLoading) && (
                                 <div style={{
                                     margin: '12px',
                                     padding: '12px',
@@ -720,29 +725,37 @@ export default function Dashboard() {
                                             backgroundColor: 'rgba(255,255,255,0.05)',
                                             padding: '8px 10px',
                                             borderRadius: '6px',
-                                            border: '1px solid rgba(255,140,0,0.1)'
+                                            border: '1px solid rgba(255,140,0,0.1)',
+                                            minHeight: '28px',
+                                            alignItems: 'center'
                                         }}>
-                                            {(() => {
-                                                const usedKb = quota.used;
-                                                const limitKb = quota.limit;
+                                            {quotaLoading ? (
+                                                <span style={{ opacity: 0.5, fontSize: '10px' }}>Sorgulanıyor...</span>
+                                            ) : quota ? (
+                                                (() => {
+                                                    const usedKb = quota.used;
+                                                    const limitKb = quota.limit;
 
-                                                const format = (kb: number) => {
-                                                    if (kb >= 1024 * 1024) return `${(kb / (1024 * 1024)).toFixed(2)} GB`;
-                                                    if (kb >= 1024) return `${(kb / 1024).toFixed(2)} MB`;
-                                                    return `${kb.toFixed(2)} KB`;
-                                                };
+                                                    const formatNum = (n: number) => n.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-                                                const usedStr = format(usedKb);
-                                                const limitStr = limitKb > 0 ? format(limitKb) : '∞';
-                                                const percent = limitKb > 0 ? ((usedKb / limitKb) * 100).toFixed(2) : '0';
+                                                    const format = (kb: number) => {
+                                                        if (kb >= 1024 * 1024) return `${formatNum(kb / (1024 * 1024))} GB`;
+                                                        if (kb >= 1024) return `${formatNum(kb / 1024)} MB`;
+                                                        return `${formatNum(kb)} KB`;
+                                                    };
 
-                                                return `${usedStr} / ${limitStr}${limitKb > 0 ? ` / ${percent}%` : ''}`;
-                                            })()}
+                                                    const usedStr = format(usedKb);
+                                                    const limitStr = limitKb > 0 ? format(limitKb) : '∞';
+                                                    const percent = limitKb > 0 ? formatNum((usedKb / limitKb) * 100) : '0';
+
+                                                    return `${usedStr} / ${limitStr}${limitKb > 0 ? ` / ${percent}%` : ''}`;
+                                                })()
+                                            ) : null}
                                         </div>
                                         <div style={{ height: '6px', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: '3px', overflow: 'hidden' }}>
                                             <div style={{
                                                 height: '100%',
-                                                width: `${quota.limit > 0 ? Math.min(100, (quota.used / quota.limit) * 100) : 0}%`,
+                                                width: `${(quota && quota.limit > 0) ? Math.min(100, (quota.used / quota.limit) * 100) : 0}%`,
                                                 background: `linear-gradient(90deg, ${colors.accent}, #FFB200)`,
                                                 boxShadow: `0 0 10px ${colors.accent}55`,
                                                 borderRadius: '3px',
