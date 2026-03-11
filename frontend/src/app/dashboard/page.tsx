@@ -859,7 +859,7 @@ export default function Dashboard() {
                                             <div style={{ textAlign: 'center', padding: '40px', color: colors.subtext }}>Yükleniyor...</div>
                                         ) : (
                                             <iframe
-                                                srcDoc={`<html><head><style>body { font-family: 'Inter', system-ui, sans-serif; line-height: 1.6; color: #e2e8f0; margin: 0; padding: 12px; background: transparent; } img { max-width: 100%; height: auto; } a { color: ${colors.accent}; }</style></head><body>${selectedMail.body}</body></html>`}
+                                                srcDoc={`<html><head><style>body { font-family: 'Inter', system-ui, sans-serif; line-height: 1.6; color: ${colors.text}; margin: 0; padding: 12px; background: transparent; } img { max-width: 100%; height: auto; } a { color: ${colors.accent}; }</style></head><body>${selectedMail.body}</body></html>`}
                                                 style={{ width: '100%', height: 'calc(100% - 0px)', border: 'none', borderRadius: '6px', backgroundColor: 'transparent' }}
                                             />
                                         )}
