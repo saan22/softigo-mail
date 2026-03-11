@@ -610,6 +610,23 @@ export default function Dashboard() {
                                     />
                                 )}
                             </div>
+                            {!selectedMail.loading && selectedMail.attachments && selectedMail.attachments.length > 0 && (
+                                <div style={{ padding: '12px 16px', borderTop: '1px solid #F1F5F9', backgroundColor: '#F8FAFC', flexShrink: 0 }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                                        <Paperclip size={13} style={{ color: '#64748B' }} />
+                                        <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>EKLER ({selectedMail.attachments.length})</span>
+                                    </div>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                                        {selectedMail.attachments.map((att: any, idx: number) => (
+                                            <a key={idx} href={`${process.env.NEXT_PUBLIC_API_URL}/api/mails/${selectedMail.uid}/attachments/${encodeURIComponent(att.filename)}?folder=${encodeURIComponent(selectedFolder)}&token=${encodeURIComponent(localStorage.getItem('softigo_token') || '')}`} target="_blank" rel="noopener noreferrer" onClick={(e) => { if (!confirm(`"${att.filename}" dosyasını indirmek istiyor musunuz?`)) e.preventDefault(); }} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', backgroundColor: 'white', border: '1px solid #E2E8F0', borderRadius: '8px', textDecoration: 'none', color: '#1E293B', flex: '1 1 auto', minWidth: '120px' }}>
+                                                <FileText size={16} style={{ color: colors.accent, flexShrink: 0 }} />
+                                                <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: '13px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{att.filename}</div><div style={{ fontSize: '11px', color: '#64748B' }}>{(att.size / 1024).toFixed(1)} KB</div></div>
+                                                <Download size={14} style={{ color: '#94A3B8', flexShrink: 0 }} />
+                                            </a>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
                 </main>
