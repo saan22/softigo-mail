@@ -9,7 +9,8 @@ import {
     Download, Menu, Settings, Bell,
     TrendingUp, CloudSun, MapPin, Globe, ExternalLink,
     ChevronDown, ChevronUp, Clock, Info, Globe2,
-    ChevronLeft, ChevronRight, Square, CheckSquare
+    ChevronLeft, ChevronRight, Square, CheckSquare,
+    Moon, Sun
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import RichTextEditor from "../../components/RichTextEditor";
@@ -17,13 +18,15 @@ import { useTheme } from "../../context/ThemeContext";
 
 export default function Dashboard() {
     const router = useRouter();
-    const { colors } = useTheme();
+    const { colors, theme, toggleTheme } = useTheme();
     const [mails, setMails] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedMail, setSelectedMail] = useState<any>(null);
     const [draftUid, setDraftUid] = useState<number | null>(null);
     const [userEmail, setUserEmail] = useState("");
     const [isComposeOpen, setIsComposeOpen] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+    const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const [composeData, setComposeData] = useState({ to: "", subject: "", body: "", cc: "", bcc: "" });
     const [showCc, setShowCc] = useState(false);
     const [showBcc, setShowBcc] = useState(false);
@@ -653,8 +656,8 @@ export default function Dashboard() {
                         </div>
                         <div style={{ flex: 1 }} />
                         <span style={{ color: colors.subtext, fontSize: '13px' }}>{userEmail}</span>
-                        <button style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,140,0,0.2)', borderRadius: '50%', width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
-                            <Bell size={16} color={colors.subtext} />
+                        <button onClick={toggleTheme} title="Temayı Değiştir" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,140,0,0.2)', borderRadius: '50%', width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
+                            {theme === 'dark' ? <Sun size={16} color={colors.subtext} /> : <Moon size={16} color={colors.subtext} />}
                         </button>
                         <button onClick={handleLogout} style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,140,0,0.2)', borderRadius: '50%', width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                             <User size={16} color={colors.subtext} />
@@ -785,9 +788,9 @@ export default function Dashboard() {
 
                             {/* Sidebar bottom icons */}
                             <div style={{ padding: '12px', borderTop: `1px solid ${colors.sidebarBorder}`, display: 'flex', justifyContent: 'space-around' }}>
-                                <button title="Ayarlar" style={{ background: 'none', border: 'none', color: colors.subtext, cursor: 'pointer', padding: '8px', borderRadius: '8px' }}><Settings size={18} /></button>
+                                <button title="Ayarlar" onClick={() => setIsSettingsOpen(true)} style={{ background: 'none', border: 'none', color: isSettingsOpen ? colors.accent : colors.subtext, cursor: 'pointer', padding: '8px', borderRadius: '8px' }}><Settings size={18} /></button>
                                 <button title="Profil" onClick={handleLogout} style={{ background: 'none', border: 'none', color: colors.subtext, cursor: 'pointer', padding: '8px', borderRadius: '8px' }}><User size={18} /></button>
-                                <button title="Takvim" style={{ background: 'none', border: 'none', color: colors.subtext, cursor: 'pointer', padding: '8px', borderRadius: '8px' }}><Calendar size={18} /></button>
+                                <button title="Takvim" onClick={() => setIsCalendarOpen(true)} style={{ background: 'none', border: 'none', color: isCalendarOpen ? colors.accent : colors.subtext, cursor: 'pointer', padding: '8px', borderRadius: '8px' }}><Calendar size={18} /></button>
                             </div>
                         </div>
 
@@ -1168,6 +1171,61 @@ export default function Dashboard() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* DESKTOP MODALS */}
+            <AnimatePresence>
+                {!isMobile && isSettingsOpen && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+                            style={{ backgroundColor: colors.bg, width: '400px', borderRadius: '12px', border: `1px solid ${colors.sidebarBorder}`, boxShadow: '0 20px 40px rgba(0,0,0,0.3)', overflow: 'hidden' }}>
+                            <div style={{ padding: '16px 20px', borderBottom: `1px solid ${colors.sidebarBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <h3 style={{ color: colors.text, margin: 0, fontSize: '16px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}><Settings size={18} color={colors.accent} /> Ayarlar</h3>
+                                <button onClick={() => setIsSettingsOpen(false)} style={{ background: 'none', border: 'none', color: colors.subtext, cursor: 'pointer' }}><X size={20} /></button>
+                            </div>
+                            <div style={{ padding: '24px 20px', color: colors.text, fontSize: '14px' }}>
+                                <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span>Aydınlık/Karanlık Tema</span>
+                                    <button onClick={toggleTheme} style={{ background: colors.inputBg, border: `1px solid ${colors.sidebarBorder}`, color: colors.text, padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' }}>
+                                        {theme === 'dark' ? 'Aydınlık Moda Geç' : 'Karanlık Moda Geç'}
+                                    </button>
+                                </div>
+                                <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span>Bildirimler</span>
+                                    <span style={{ fontSize: '12px', color: colors.subtext, padding: '4px 8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}>Çok Yakında</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span>İmza Ayarları</span>
+                                    <span style={{ fontSize: '12px', color: colors.subtext, padding: '4px 8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}>Çok Yakında</span>
+                                </div>
+                            </div>
+                            <div style={{ padding: '16px 20px', borderTop: `1px solid ${colors.sidebarBorder}`, display: 'flex', justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.1)' }}>
+                                <button onClick={() => setIsSettingsOpen(false)} style={{ background: colors.accent, color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>Kapat</button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {!isMobile && isCalendarOpen && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+                            style={{ backgroundColor: colors.bg, width: '400px', borderRadius: '12px', border: `1px solid ${colors.sidebarBorder}`, boxShadow: '0 20px 40px rgba(0,0,0,0.3)', overflow: 'hidden' }}>
+                            <div style={{ padding: '16px 20px', borderBottom: `1px solid ${colors.sidebarBorder}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <h3 style={{ color: colors.text, margin: 0, fontSize: '16px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}><Calendar size={18} color={colors.accent} /> Takvim Görevleri</h3>
+                                <button onClick={() => setIsCalendarOpen(false)} style={{ background: 'none', border: 'none', color: colors.subtext, cursor: 'pointer' }}><X size={20} /></button>
+                            </div>
+                            <div style={{ padding: '40px 20px', textAlign: 'center', color: colors.subtext, fontSize: '14px' }}>
+                                <Calendar size={48} style={{ opacity: 0.2, marginBottom: '16px' }} />
+                                <p>Takvim özelliği şu anda geliştirme aşamasındadır.<br />Yakında eklenecek.</p>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
         </div >
     );
 }
