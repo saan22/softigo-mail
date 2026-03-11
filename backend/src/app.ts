@@ -1188,26 +1188,40 @@ fastify.get('/api/quota', async (request, reply) => {
         let quotaRes = null;
 
         try {
-            // Attempt 1: getQuota Root for INBOX
+            // Attempt 1: INBOX
             quotaRes = await client.getQuota('INBOX') as any;
-            console.log(`🔍 RAW Quota Response (INBOX):`, JSON.stringify(quotaRes));
             
-            if (quotaRes && quotaRes.resources) {
-                storage = quotaRes.resources.STORAGE || quotaRes.resources.storage;
-                if (!storage) {
-                    storage = Object.values(quotaRes.resources).find((r: any) => typeof r.used === 'number') || null;
+            if (quotaRes) {
+                // Case A: imapflow direct 'storage' object (often in Bytes)
+                if (quotaRes.storage && typeof quotaRes.storage.usage === 'number') {
+                    storage = {
+                        used: Math.round(quotaRes.storage.usage / 1024), // Convert to KB
+                        limit: Math.round(quotaRes.storage.limit / 1024) // Convert to KB
+                    };
+                } 
+                // Case B: standard resources.STORAGE (often in KB)
+                else if (quotaRes.resources) {
+                    const res = quotaRes.resources.STORAGE || quotaRes.resources.storage;
+                    if (res) storage = res;
                 }
             }
-
-            // Attempt 2: Account Root
+            
+            // Attempt 2: Account Root (only if Attempt 1 failed)
             if (!storage) {
                 quotaRes = await client.getQuota('') as any;
-                if (quotaRes && quotaRes.resources) {
-                    storage = quotaRes.resources.STORAGE || quotaRes.resources.storage ||
-                        Object.values(quotaRes.resources).find((r: any) => typeof r.used === 'number') || null;
+                if (quotaRes) {
+                    if (quotaRes.storage && typeof quotaRes.storage.usage === 'number') {
+                        storage = {
+                            used: Math.round(quotaRes.storage.usage / 1024),
+                            limit: Math.round(quotaRes.storage.limit / 1024)
+                        };
+                    } else if (quotaRes.resources) {
+                        storage = quotaRes.resources.STORAGE || quotaRes.resources.storage || 
+                                 Object.values(quotaRes.resources).find((r: any) => typeof r.used === 'number') || null;
+                    }
                 }
             }
-            console.log(`📊 Quota attempt for ${sessionData.email}:`, JSON.stringify(storage));
+            console.log(`📊 Extracted Quota for ${sessionData.email}:`, JSON.stringify(storage));
         } catch (e: any) {
             console.warn("Quota not supported or failed:", e.message);
         }
