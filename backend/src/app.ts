@@ -837,7 +837,8 @@ fastify.get('/api/mails/:uid/attachments/:filename', async (request, reply) => {
                 return reply.status(404).send({ error: 'Dosya bulunamadı' });
             }
 
-            reply.header('Content-Disposition', `attachment; filename="${filename}"`);
+            const encodedFilename = encodeURIComponent(filename);
+            reply.header('Content-Disposition', `attachment; filename*=UTF-8''${encodedFilename}`);
             reply.header('Content-Type', attachment.contentType);
             return reply.send(attachment.content);
 
