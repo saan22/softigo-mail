@@ -297,6 +297,7 @@ fastify.get('/api/mails', async (request, reply) => {
                     uid: message.uid,
                     subject: message.envelope?.subject || '(Konu Yok)',
                     from: message.envelope?.from?.[0]?.address || 'Bilinmeyen',
+                    to: message.envelope?.to?.map((t: any) => t.address).join(', ') || '',
                     date: message.envelope?.date,
                     flags: Array.from(message.flags || [])
                 });
