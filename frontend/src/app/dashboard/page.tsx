@@ -30,8 +30,10 @@ export default function Dashboard() {
     const [notificationSettings, setNotificationSettings] = useState<'pending' | 'granted' | 'denied'>('pending');
     const [signature, setSignature] = useState("");
     const [isEditingSignature, setIsEditingSignature] = useState(false);
-    const [tasks, setTasks] = useState<{ id: string, text: string, completed: boolean }[]>([]);
+    const [tasks, setTasks] = useState<{ id: string, text: string, completed: boolean, date?: string, priority?: 'normal' | 'high' }[]>([]);
     const [newTaskText, setNewTaskText] = useState("");
+    const [newTaskDate, setNewTaskDate] = useState("");
+    const [newTaskPriority, setNewTaskPriority] = useState<'normal' | 'high'>('normal');
     const [composeData, setComposeData] = useState({ to: "", subject: "", body: "", cc: "", bcc: "" });
     const [showCc, setShowCc] = useState(false);
     const [showBcc, setShowBcc] = useState(false);
@@ -397,11 +399,20 @@ export default function Dashboard() {
     const handleAddTask = (e: React.FormEvent) => {
         e.preventDefault();
         if (!newTaskText.trim()) return;
-        const newTasks = [{ id: Date.now().toString(), text: newTaskText, completed: false }, ...tasks];
+        const newTasks = [{ id: Date.now().toString(), text: newTaskText, completed: false, date: newTaskDate, priority: newTaskPriority }, ...tasks];
         setTasks(newTasks);
         localStorage.setItem(`softigo_tasks_${localStorage.getItem("softigo_user") || "default"}`, JSON.stringify(newTasks));
         savePreferences({ tasks: newTasks });
         setNewTaskText("");
+        setNewTaskDate("");
+        setNewTaskPriority("normal");
+    };
+
+    const clearCompletedTasks = () => {
+        const newTasks = tasks.filter(t => !t.completed);
+        setTasks(newTasks);
+        localStorage.setItem(`softigo_tasks_${localStorage.getItem("softigo_user") || "default"}`, JSON.stringify(newTasks));
+        savePreferences({ tasks: newTasks });
     };
 
     const toggleTask = (id: string) => {
@@ -1347,32 +1358,61 @@ export default function Dashboard() {
                                 <button onClick={() => setIsCalendarOpen(false)} style={{ background: 'none', border: 'none', color: colors.subtext, cursor: 'pointer' }}><X size={20} /></button>
                             </div>
                             <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                                <form onSubmit={handleAddTask} style={{ display: 'flex', gap: '8px' }}>
+                                <form onSubmit={handleAddTask} style={{ display: 'flex', flexDirection: 'column', gap: '12px', paddingBottom: '16px', borderBottom: `1px solid ${colors.sidebarBorder}` }}>
                                     <input 
                                         type="text" 
                                         placeholder="Yeni görev ekle..." 
                                         value={newTaskText} 
                                         onChange={(e) => setNewTaskText(e.target.value)}
-                                        style={{ flex: 1, padding: '10px 12px', border: `1px solid ${colors.sidebarBorder}`, borderRadius: '8px', background: colors.inputBg, color: colors.text, outline: 'none', fontSize: '14px' }}
+                                        style={{ width: '100%', padding: '10px 12px', border: `1px solid ${colors.sidebarBorder}`, borderRadius: '8px', background: colors.inputBg, color: colors.text, outline: 'none', fontSize: '14px' }}
                                     />
-                                    <button type="submit" disabled={!newTaskText.trim()} style={{ background: colors.accent, color: 'white', border: 'none', padding: '0 16px', borderRadius: '8px', fontWeight: 600, cursor: newTaskText.trim() ? 'pointer' : 'not-allowed', opacity: newTaskText.trim() ? 1 : 0.6 }}>Ekle</button>
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        <input 
+                                            type="date" 
+                                            value={newTaskDate}
+                                            onChange={e => setNewTaskDate(e.target.value)}
+                                            style={{ flex: 1, padding: '8px', border: `1px solid ${colors.sidebarBorder}`, borderRadius: '6px', background: colors.inputBg, color: colors.text, outline: 'none', fontSize: '13px' }}
+                                        />
+                                        <select 
+                                            value={newTaskPriority}
+                                            onChange={e => setNewTaskPriority(e.target.value as any)}
+                                            style={{ flex: 1, padding: '8px', border: `1px solid ${colors.sidebarBorder}`, borderRadius: '6px', background: colors.inputBg, color: colors.text, outline: 'none', fontSize: '13px', cursor: 'pointer' }}
+                                        >
+                                            <option value="normal">Normal Öncelik</option>
+                                            <option value="high">Yüksek Öncelik</option>
+                                        </select>
+                                        <button type="submit" disabled={!newTaskText.trim()} style={{ background: colors.accent, color: 'white', border: 'none', padding: '0 16px', borderRadius: '6px', fontWeight: 600, cursor: newTaskText.trim() ? 'pointer' : 'not-allowed', opacity: newTaskText.trim() ? 1 : 0.6 }}>Ekle</button>
+                                    </div>
                                 </form>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ fontSize: '12px', fontWeight: 600, color: colors.subtext }}>YAPILACAKLAR LISTESI</span>
+                                    {tasks.some(t => t.completed) && (
+                                        <button onClick={clearCompletedTasks} style={{ background: 'none', border: 'none', color: '#EF4444', fontSize: '12px', cursor: 'pointer', fontWeight: 600, opacity: 0.8 }}>Temizle (Tamamlananlar)</button>
+                                    )}
+                                </div>
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
                                     {tasks.length === 0 ? (
                                         <div style={{ textAlign: 'center', padding: '30px 0', color: colors.subtext }}>
                                             <CheckSquare size={32} style={{ opacity: 0.2, marginBottom: '8px' }} />
-                                            <p style={{ fontSize: '13px' }}>Henüz görev eklemediniz.</p>
+                                            <p style={{ fontSize: '13px' }}>Harika! Yapılacak işiniz kalmadı.</p>
                                         </div>
                                     ) : (
                                         tasks.map(task => (
-                                            <div key={task.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', background: 'rgba(0,0,0,0.02)', border: `1px solid ${colors.sidebarBorder}`, borderRadius: '8px' }}>
+                                            <div key={task.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', background: task.completed ? 'rgba(0,0,0,0.02)' : colors.bg, border: `1px solid ${task.priority === 'high' && !task.completed ? 'rgba(239, 68, 68, 0.4)' : colors.sidebarBorder}`, borderRadius: '8px', opacity: task.completed ? 0.6 : 1 }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, cursor: 'pointer' }} onClick={() => toggleTask(task.id)}>
-                                                    <div style={{ color: task.completed ? '#22C55E' : colors.subtext, display: 'flex', alignItems: 'center' }}>
+                                                    <div style={{ color: task.completed ? '#22C55E' : (task.priority === 'high' ? '#EF4444' : colors.subtext), display: 'flex', alignItems: 'center' }}>
                                                         {task.completed ? <CheckSquare size={18} /> : <Square size={18} />}
                                                     </div>
-                                                    <span style={{ fontSize: '14px', color: task.completed ? colors.subtext : colors.text, textDecoration: task.completed ? 'line-through' : 'none', wordBreak: 'break-word' }}>{task.text}</span>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', alignItems: 'flex-start' }}>
+                                                        <span style={{ fontSize: '14px', color: task.completed ? colors.subtext : colors.text, textDecoration: task.completed ? 'line-through' : 'none', wordBreak: 'break-word', fontWeight: task.priority === 'high' && !task.completed ? 600 : 400 }}>{task.text}</span>
+                                                        {task.date && (
+                                                            <span style={{ fontSize: '11px', color: task.completed ? colors.subtext : (task.priority === 'high' ? '#EF4444' : colors.accent), display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(0,0,0,0.03)', padding: '2px 6px', borderRadius: '4px' }}>
+                                                                <Calendar size={10} /> {new Date(task.date).toLocaleDateString('tr-TR')}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <button onClick={() => deleteTask(task.id)} style={{ background: 'none', border: 'none', color: '#EF4444', opacity: 0.7, cursor: 'pointer', padding: '4px' }}><Trash2 size={16} /></button>
+                                                <button onClick={() => deleteTask(task.id)} style={{ background: 'none', border: 'none', color: '#EF4444', opacity: 0.7, cursor: 'pointer', padding: '6px' }}><Trash2 size={16} /></button>
                                             </div>
                                         ))
                                     )}
