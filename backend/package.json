@@ -1,6 +1,6 @@
 {
     "name": "softigo-mail-backend",
-    "version": "1.0.1",
+    "version": "1.4.0",
     "description": "Softigo Mail Backend Service",
     "main": "dist/app.js",
     "scripts": {

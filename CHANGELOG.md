@@ -5,6 +5,33 @@
 
 ---
 
+## [v1.4.0] — 2026-03-26
+
+### ✨ Gelişmiş İmza ve Zengin Metin Editörü
+
+- **Zengin Metin Editörü (RichTextEditor):** Mailler ve imzalar için gelişmiş HTML editörü eklendi.
+- **Resim Ekleme:** İmzaya veya mail gövdesine bilgisayardan/telefondan resim yükleme (base64) desteği eklendi.
+- **Bağlantı (Link) Desteği:** İmzalar için tıklanabilir bağlantı oluşturma özelliği eklendi.
+
+### ✨ Takvim Görevleri (Yapılacaklar Listesi)
+
+- Boş takvim alanı, aktif bir **Görev Yönetim Sistemi'ne** dönüştürüldü.
+- Görevlere **Bitiş Tarihi** ve **Öncelik Derecesi** (Normal/Yüksek) atama eklendi.
+- Tamamlanan görevleri toplu silme ve üstünü çizerek işaretleme desteği.
+
+### ✨ Cihazlar Arası Eşitleme (Cross-Device Sync)
+
+- **Backend Veri Deposu:** Ayarların (imza, görevler vb.) tarayıcı yerine sunucuda saklanması sağlandı.
+- Farklı bilgisayar veya telefonlardan girildiğinde ayarların otomatik çekilmesi sağlandı.
+- **Docker Veri Güvenliği:** `docker-compose.yml` dosyasına `volumes` eklenerek sunucu güncellense bile verilerin silinmemesi sağlandı.
+
+### ✨ Kullanıcı Deneyimi İyileştirmeleri
+
+- **Gönderilmiş/Taslak Klasörleri:** Mail listesinde "Kimden" yerine "Kime" adresi gösterilmesi sağlandı.
+- **Bildirim Ayarları:** Tarayıcı üzerinden masaüstü bildirimlerine izin verme ve yönetme arayüzü eklendi.
+
+---
+
 ## [v1.3.0] — 2026-02-24
 
 ### 🐛 iOS Ek Dosya Gönderim Hatası Düzeltildi
