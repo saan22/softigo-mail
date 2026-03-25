@@ -6,6 +6,8 @@ import * as dotenv from 'dotenv';
 import { CryptoService } from './services/crypto.service';
 import { WidgetService } from './services/widget.service';
 import { simpleParser } from 'mailparser';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 
 dotenv.config();
 
@@ -39,6 +41,64 @@ async function findSystemFolders(client: ImapFlow) {
         archive: findFolder(['\\Archive'], ['archive', 'arşiv']) || 'Archive'
     };
 }
+
+// Preferences Storage
+const PREF_DIR = path.join(process.cwd(), 'data');
+const PREF_FILE = path.join(PREF_DIR, 'preferences.json');
+
+async function ensurePrefFile() {
+    try {
+        await fs.mkdir(PREF_DIR, { recursive: true });
+        await fs.access(PREF_FILE);
+    } catch {
+        await fs.writeFile(PREF_FILE, '{}', 'utf-8');
+    }
+}
+ensurePrefFile();
+
+async function getPrefs() {
+    try {
+        const data = await fs.readFile(PREF_FILE, 'utf-8');
+        return JSON.parse(data);
+    } catch {
+        return {};
+    }
+}
+
+async function savePrefs(prefs: any) {
+    await fs.writeFile(PREF_FILE, JSON.stringify(prefs, null, 2), 'utf-8');
+}
+
+fastify.get('/api/preferences', async (request, reply) => {
+    const token = request.headers['authorization'];
+    if (!token) return reply.status(401).send({ error: 'Yetkisiz erişim' });
+    try {
+        const sessionData = JSON.parse(CryptoService.decrypt(token));
+        const email = sessionData.email?.toLowerCase(); // normalize email as key
+        const allPrefs = await getPrefs();
+        return { success: true, data: allPrefs[email] || {} };
+    } catch (error) {
+        return reply.status(500).send({ error: 'Ayarlar okunamadı', details: (error as any).message });
+    }
+});
+
+fastify.post('/api/preferences', async (request, reply) => {
+    const token = request.headers['authorization'];
+    if (!token) return reply.status(401).send({ error: 'Yetkisiz erişim' });
+    try {
+        const sessionData = JSON.parse(CryptoService.decrypt(token));
+        const email = sessionData.email?.toLowerCase();
+        const body = request.body as any;
+        
+        const allPrefs = await getPrefs();
+        allPrefs[email] = { ...allPrefs[email], ...body };
+        await savePrefs(allPrefs);
+        
+        return { success: true, data: allPrefs[email] };
+    } catch (error) {
+        return reply.status(500).send({ error: 'Ayarlar kaydedilemedi', details: (error as any).message });
+    }
+});
 
 // Get Folders API
 fastify.get('/api/folders', async (request, reply) => {

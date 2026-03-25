@@ -144,6 +144,24 @@ export default function Dashboard() {
         if (storedTasks) {
             try { setTasks(JSON.parse(storedTasks)); } catch (e) { }
         }
+
+        const fetchServerPrefs = async () => {
+             try {
+                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/preferences`, { headers: { 'Authorization': token }});
+                 const json = await res.json();
+                 if (json.success && json.data) {
+                      if (json.data.signature !== undefined) {
+                          setSignature(json.data.signature);
+                          localStorage.setItem(`softigo_signature_${userKey}`, json.data.signature);
+                      }
+                      if (json.data.tasks !== undefined) {
+                          setTasks(json.data.tasks);
+                          localStorage.setItem(`softigo_tasks_${userKey}`, JSON.stringify(json.data.tasks));
+                      }
+                 }
+             } catch (e) {}
+        };
+        fetchServerPrefs();
     }, []); // Empty deps = mount only, router is stable within session
 
     // Re-fetch mails only when selected folder changes
@@ -362,12 +380,27 @@ export default function Dashboard() {
         setIsComposeOpen(true);
     };
 
+    const savePreferences = async (data: any) => {
+        const token = localStorage.getItem("softigo_token");
+        if (!token) return;
+        try {
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/preferences`, {
+                method: 'POST',
+                headers: { 'Authorization': token, 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+        } catch (e) {
+            console.error("Gelişmiş ayarlar kaydedilemedi.");
+        }
+    };
+
     const handleAddTask = (e: React.FormEvent) => {
         e.preventDefault();
         if (!newTaskText.trim()) return;
         const newTasks = [{ id: Date.now().toString(), text: newTaskText, completed: false }, ...tasks];
         setTasks(newTasks);
         localStorage.setItem(`softigo_tasks_${localStorage.getItem("softigo_user") || "default"}`, JSON.stringify(newTasks));
+        savePreferences({ tasks: newTasks });
         setNewTaskText("");
     };
 
@@ -375,12 +408,14 @@ export default function Dashboard() {
         const newTasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
         setTasks(newTasks);
         localStorage.setItem(`softigo_tasks_${localStorage.getItem("softigo_user") || "default"}`, JSON.stringify(newTasks));
+        savePreferences({ tasks: newTasks });
     };
 
     const deleteTask = (id: string) => {
         const newTasks = tasks.filter(t => t.id !== id);
         setTasks(newTasks);
         localStorage.setItem(`softigo_tasks_${localStorage.getItem("softigo_user") || "default"}`, JSON.stringify(newTasks));
+        savePreferences({ tasks: newTasks });
     };
 
     const handleReplyMail = (mail: any) => {
@@ -1279,7 +1314,12 @@ export default function Dashboard() {
                                                             minHeight="150px"
                                                         />
                                                     </div>
-                                                    <button onClick={() => { localStorage.setItem(`softigo_signature_${localStorage.getItem("softigo_user") || "default"}`, signature); alert("İmza kaydedildi!"); setIsEditingSignature(false); }} style={{ alignSelf: 'flex-end', background: colors.accent, color: 'white', border: 'none', padding: '6px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                                                    <button onClick={() => { 
+                                                        localStorage.setItem(`softigo_signature_${localStorage.getItem("softigo_user") || "default"}`, signature); 
+                                                        savePreferences({ signature });
+                                                        alert("İmza kaydedildi!"); 
+                                                        setIsEditingSignature(false); 
+                                                    }} style={{ alignSelf: 'flex-end', background: colors.accent, color: 'white', border: 'none', padding: '6px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
                                                         Kaydet
                                                     </button>
                                                 </div>

@@ -15,6 +15,8 @@ services:
       - "3005:3005"
     networks:
       - softigo-network
+    volumes:
+      - ./backend-data:/app/data
 
   frontend:
     build:
