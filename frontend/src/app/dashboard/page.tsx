@@ -30,6 +30,8 @@ export default function Dashboard() {
     const [notificationSettings, setNotificationSettings] = useState<'pending' | 'granted' | 'denied'>('pending');
     const [signature, setSignature] = useState("");
     const [isEditingSignature, setIsEditingSignature] = useState(false);
+    const [tasks, setTasks] = useState<{ id: string, text: string, completed: boolean }[]>([]);
+    const [newTaskText, setNewTaskText] = useState("");
     const [composeData, setComposeData] = useState({ to: "", subject: "", body: "", cc: "", bcc: "" });
     const [showCc, setShowCc] = useState(false);
     const [showBcc, setShowBcc] = useState(false);
@@ -126,6 +128,11 @@ export default function Dashboard() {
 
         if ("Notification" in window) {
             setNotificationSettings(Notification.permission as any);
+        }
+
+        const storedTasks = localStorage.getItem("softigo_tasks");
+        if (storedTasks) {
+            try { setTasks(JSON.parse(storedTasks)); } catch (e) { }
         }
     }, []); // Empty deps = mount only, router is stable within session
 
@@ -343,6 +350,27 @@ export default function Dashboard() {
         setDraftUid(null);
         setAttachments([]);
         setIsComposeOpen(true);
+    };
+
+    const handleAddTask = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newTaskText.trim()) return;
+        const newTasks = [{ id: Date.now().toString(), text: newTaskText, completed: false }, ...tasks];
+        setTasks(newTasks);
+        localStorage.setItem("softigo_tasks", JSON.stringify(newTasks));
+        setNewTaskText("");
+    };
+
+    const toggleTask = (id: string) => {
+        const newTasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+        setTasks(newTasks);
+        localStorage.setItem("softigo_tasks", JSON.stringify(newTasks));
+    };
+
+    const deleteTask = (id: string) => {
+        const newTasks = tasks.filter(t => t.id !== id);
+        setTasks(newTasks);
+        localStorage.setItem("softigo_tasks", JSON.stringify(newTasks));
     };
 
     const handleReplyMail = (mail: any) => {
@@ -1268,9 +1296,37 @@ export default function Dashboard() {
                                 <h3 style={{ color: colors.text, margin: 0, fontSize: '16px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}><Calendar size={18} color={colors.accent} /> Takvim Görevleri</h3>
                                 <button onClick={() => setIsCalendarOpen(false)} style={{ background: 'none', border: 'none', color: colors.subtext, cursor: 'pointer' }}><X size={20} /></button>
                             </div>
-                            <div style={{ padding: '40px 20px', textAlign: 'center', color: colors.subtext, fontSize: '14px' }}>
-                                <Calendar size={48} style={{ opacity: 0.2, marginBottom: '16px' }} />
-                                <p>Takvim özelliği şu anda geliştirme aşamasındadır.<br />Yakında eklenecek.</p>
+                            <div style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                                <form onSubmit={handleAddTask} style={{ display: 'flex', gap: '8px' }}>
+                                    <input 
+                                        type="text" 
+                                        placeholder="Yeni görev ekle..." 
+                                        value={newTaskText} 
+                                        onChange={(e) => setNewTaskText(e.target.value)}
+                                        style={{ flex: 1, padding: '10px 12px', border: `1px solid ${colors.sidebarBorder}`, borderRadius: '8px', background: colors.inputBg, color: colors.text, outline: 'none', fontSize: '14px' }}
+                                    />
+                                    <button type="submit" disabled={!newTaskText.trim()} style={{ background: colors.accent, color: 'white', border: 'none', padding: '0 16px', borderRadius: '8px', fontWeight: 600, cursor: newTaskText.trim() ? 'pointer' : 'not-allowed', opacity: newTaskText.trim() ? 1 : 0.6 }}>Ekle</button>
+                                </form>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
+                                    {tasks.length === 0 ? (
+                                        <div style={{ textAlign: 'center', padding: '30px 0', color: colors.subtext }}>
+                                            <CheckSquare size={32} style={{ opacity: 0.2, marginBottom: '8px' }} />
+                                            <p style={{ fontSize: '13px' }}>Henüz görev eklemediniz.</p>
+                                        </div>
+                                    ) : (
+                                        tasks.map(task => (
+                                            <div key={task.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px', background: 'rgba(0,0,0,0.02)', border: `1px solid ${colors.sidebarBorder}`, borderRadius: '8px' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, cursor: 'pointer' }} onClick={() => toggleTask(task.id)}>
+                                                    <div style={{ color: task.completed ? '#22C55E' : colors.subtext, display: 'flex', alignItems: 'center' }}>
+                                                        {task.completed ? <CheckSquare size={18} /> : <Square size={18} />}
+                                                    </div>
+                                                    <span style={{ fontSize: '14px', color: task.completed ? colors.subtext : colors.text, textDecoration: task.completed ? 'line-through' : 'none', wordBreak: 'break-word' }}>{task.text}</span>
+                                                </div>
+                                                <button onClick={() => deleteTask(task.id)} style={{ background: 'none', border: 'none', color: '#EF4444', opacity: 0.7, cursor: 'pointer', padding: '4px' }}><Trash2 size={16} /></button>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
                             </div>
                         </motion.div>
                     </motion.div>
