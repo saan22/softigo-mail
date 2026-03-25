@@ -336,7 +336,7 @@ export default function Dashboard() {
     };
 
     const openComposeWithSignature = () => {
-        const sigStr = signature ? `<br><br>--<br><div style="color: #64748B; font-size: 13px;">${signature.replace(/\n/g, '<br>')}</div>` : "";
+        const sigStr = signature ? `<br><br>--<br><div style="color: #64748B; font-size: 13px;">${signature}</div>` : "";
         setComposeData({ to: "", subject: "", body: sigStr, cc: "", bcc: "" });
         setShowCc(false);
         setShowBcc(false);
@@ -346,7 +346,7 @@ export default function Dashboard() {
     };
 
     const handleReplyMail = (mail: any) => {
-        const sigStr = signature ? `<br><br>--<br><div style="color: #64748B; font-size: 13px;">${signature.replace(/\n/g, '<br>')}</div>` : "";
+        const sigStr = signature ? `<br><br>--<br><div style="color: #64748B; font-size: 13px;">${signature}</div>` : "";
         setComposeData({
             to: mail.from,
             subject: `Re: ${mail.subject}`,
@@ -1234,12 +1234,13 @@ export default function Dashboard() {
                                         {isEditingSignature && (
                                             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ overflow: 'hidden' }}>
                                                 <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                                    <textarea 
-                                                        value={signature} 
-                                                        onChange={(e) => setSignature(e.target.value)}
-                                                        placeholder="E-postalarınızın altına eklenecek imzanızı yazın..."
-                                                        style={{ width: '100%', minHeight: '80px', padding: '10px', borderRadius: '8px', border: `1px solid ${colors.sidebarBorder}`, background: 'rgba(0,0,0,0.05)', color: colors.text, fontSize: '13px', outline: 'none', resize: 'vertical' }}
-                                                    />
+                                                    <div style={{ borderRadius: '8px', overflow: 'hidden' }}>
+                                                        <RichTextEditor 
+                                                            value={signature} 
+                                                            onChange={(html) => setSignature(html)} 
+                                                            minHeight="150px"
+                                                        />
+                                                    </div>
                                                     <button onClick={() => { localStorage.setItem('softigo_signature', signature); alert("İmza kaydedildi!"); setIsEditingSignature(false); }} style={{ alignSelf: 'flex-end', background: colors.accent, color: 'white', border: 'none', padding: '6px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
                                                         Kaydet
                                                     </button>

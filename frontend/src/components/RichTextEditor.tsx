@@ -12,10 +12,12 @@ interface RichTextEditorProps {
     value: string;
     onChange: (html: string) => void;
     placeholder?: string;
+    minHeight?: string;
 }
 
-export default function RichTextEditor({ value, onChange, placeholder }: RichTextEditorProps) {
+export default function RichTextEditor({ value, onChange, placeholder, minHeight = '400px' }: RichTextEditorProps) {
     const editorRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [isFocused, setIsFocused] = useState(false);
     const { theme, colors } = useTheme();
 
@@ -56,8 +58,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
             border: `1px solid ${colors.sidebarBorder}`,
             borderRadius: '8px',
             backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)',
-            overflow: 'hidden',
-            minHeight: '300px'
+            overflow: 'hidden'
         }}>
             {/* Toolbar */}
             <div style={{
@@ -72,6 +73,31 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
                 <ToolbarButton icon={<Bold size={16} />} onClick={() => execCommand('bold')} tooltip="Kalın" />
                 <ToolbarButton icon={<Italic size={16} />} onClick={() => execCommand('italic')} tooltip="İtalik" />
                 <ToolbarButton icon={<Underline size={16} />} onClick={() => execCommand('underline')} tooltip="Altı Çizili" />
+
+                <div style={{ width: '1px', height: '20px', backgroundColor: colors.sidebarBorder, margin: '0 8px' }} />
+
+                <ToolbarButton icon={<LinkIcon size={16} />} onClick={() => {
+                    const url = prompt('Bağlantı URL\'sini girin:');
+                    if (url) execCommand('createLink', url);
+                }} tooltip="Bağlantı (Link)" />
+                <ToolbarButton icon={<ImageIcon size={16} />} onClick={() => fileInputRef.current?.click()} tooltip="Resim Ekle" />
+                <input 
+                    type="file" 
+                    accept="image/*" 
+                    ref={fileInputRef} 
+                    style={{ display: 'none' }} 
+                    onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (event) => {
+                                execCommand('insertImage', event.target?.result as string);
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                        e.target.value = '';
+                    }} 
+                />
 
                 <div style={{ width: '1px', height: '20px', backgroundColor: colors.sidebarBorder, margin: '0 8px' }} />
 
@@ -144,7 +170,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
                     fontSize: '15px',
                     lineHeight: '1.7',
                     overflowY: 'auto',
-                    minHeight: '400px'
+                    minHeight: minHeight
                 }}
                 className="rich-editor-content"
                 spellCheck={false}
