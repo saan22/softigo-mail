@@ -123,14 +123,24 @@ export default function Dashboard() {
         fetchWidgetData(storedCity);
         fetchQuota();
 
-        const sig = localStorage.getItem("softigo_signature");
+        const userKey = email || "default";
+
+        let sig = localStorage.getItem(`softigo_signature_${userKey}`);
+        if (!sig) {
+            sig = localStorage.getItem("softigo_signature");
+            if (sig) localStorage.setItem(`softigo_signature_${userKey}`, sig);
+        }
         if (sig) setSignature(sig);
 
         if ("Notification" in window) {
             setNotificationSettings(Notification.permission as any);
         }
 
-        const storedTasks = localStorage.getItem("softigo_tasks");
+        let storedTasks = localStorage.getItem(`softigo_tasks_${userKey}`);
+        if (!storedTasks) {
+            storedTasks = localStorage.getItem("softigo_tasks");
+            if (storedTasks) localStorage.setItem(`softigo_tasks_${userKey}`, storedTasks);
+        }
         if (storedTasks) {
             try { setTasks(JSON.parse(storedTasks)); } catch (e) { }
         }
@@ -357,20 +367,20 @@ export default function Dashboard() {
         if (!newTaskText.trim()) return;
         const newTasks = [{ id: Date.now().toString(), text: newTaskText, completed: false }, ...tasks];
         setTasks(newTasks);
-        localStorage.setItem("softigo_tasks", JSON.stringify(newTasks));
+        localStorage.setItem(`softigo_tasks_${localStorage.getItem("softigo_user") || "default"}`, JSON.stringify(newTasks));
         setNewTaskText("");
     };
 
     const toggleTask = (id: string) => {
         const newTasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
         setTasks(newTasks);
-        localStorage.setItem("softigo_tasks", JSON.stringify(newTasks));
+        localStorage.setItem(`softigo_tasks_${localStorage.getItem("softigo_user") || "default"}`, JSON.stringify(newTasks));
     };
 
     const deleteTask = (id: string) => {
         const newTasks = tasks.filter(t => t.id !== id);
         setTasks(newTasks);
-        localStorage.setItem("softigo_tasks", JSON.stringify(newTasks));
+        localStorage.setItem(`softigo_tasks_${localStorage.getItem("softigo_user") || "default"}`, JSON.stringify(newTasks));
     };
 
     const handleReplyMail = (mail: any) => {
@@ -1269,7 +1279,7 @@ export default function Dashboard() {
                                                             minHeight="150px"
                                                         />
                                                     </div>
-                                                    <button onClick={() => { localStorage.setItem('softigo_signature', signature); alert("İmza kaydedildi!"); setIsEditingSignature(false); }} style={{ alignSelf: 'flex-end', background: colors.accent, color: 'white', border: 'none', padding: '6px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                                                    <button onClick={() => { localStorage.setItem(`softigo_signature_${localStorage.getItem("softigo_user") || "default"}`, signature); alert("İmza kaydedildi!"); setIsEditingSignature(false); }} style={{ alignSelf: 'flex-end', background: colors.accent, color: 'white', border: 'none', padding: '6px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
                                                         Kaydet
                                                     </button>
                                                 </div>
