@@ -478,6 +478,8 @@ export default function Dashboard() {
     };
     const getFolderPath = (type: string) => folders.find(f => f.type === type)?.path || type;
     const unreadCount = mails.filter(m => !m.flags?.includes('\\Seen')).length;
+    const currentFolderType = folders.find(f => f.path === selectedFolder)?.type;
+    const isSentFolder = currentFolderType === 'SENT' || currentFolderType === 'DRAFTS';
     // ────────────────────────────────────────────────────────────────────
 
     return (
@@ -567,12 +569,12 @@ export default function Dashboard() {
                                             padding: '16px 20px', borderBottom: `1px dotted ${colors.sidebarBorder}`, cursor: 'pointer',
                                             display: 'flex', gap: '14px', alignItems: 'center'
                                         }}>
-                                            <div style={{ width: 44, height: 44, borderRadius: '22px', backgroundColor: getAvatarColor(mail.from || ''), display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: 'white' }}>
-                                                {getInitials(mail.from || 'U')}
+                                            <div style={{ width: 44, height: 44, borderRadius: '22px', backgroundColor: getAvatarColor(isSentFolder ? (mail.to || '') : (mail.from || '')), display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: 'white' }}>
+                                                {getInitials(isSentFolder ? (mail.to || 'U') : (mail.from || 'U'))}
                                             </div>
                                             <div style={{ flex: 1, minWidth: 0 }}>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', alignItems: 'center' }}>
-                                                    <span style={{ fontSize: '15px', fontWeight: mail.flags?.includes('\\Seen') ? 500 : 900, color: colors.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{getDisplayName(mail.from || '')}</span>
+                                                    <span style={{ fontSize: '15px', fontWeight: mail.flags?.includes('\\Seen') ? 500 : 900, color: colors.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{isSentFolder ? getDisplayName(mail.to || '') : getDisplayName(mail.from || '')}</span>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                                                         <span style={{ fontSize: '11px', color: colors.subtext }}>{formatMailDate(mail.date)}</span>
                                                         {!mail.flags?.includes('\\Seen') && (
@@ -596,9 +598,9 @@ export default function Dashboard() {
                             <div style={{ padding: '20px', borderBottom: '1px solid #F1F5F9' }}>
                                 <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#1E293B', marginBottom: '12px' }}>{selectedMail.subject || '(Konu Yok)'}</h2>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                    <div style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: getAvatarColor(selectedMail.from || ''), display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700 }}>{getInitials(selectedMail.from || 'U')}</div>
+                                    <div style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: getAvatarColor(isSentFolder ? (selectedMail.to || '') : (selectedMail.from || '')), display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700 }}>{getInitials(isSentFolder ? (selectedMail.to || 'U') : (selectedMail.from || 'U'))}</div>
                                     <div>
-                                        <div style={{ fontSize: '14px', fontWeight: 600, color: '#1E293B' }}>{selectedMail.from}</div>
+                                        <div style={{ fontSize: '14px', fontWeight: 600, color: '#1E293B' }}>{isSentFolder ? `Kime: ${selectedMail.to || 'Bilinmeyen'}` : selectedMail.from}</div>
                                         <div style={{ fontSize: '12px', color: '#64748B' }}>{new Date(selectedMail.date).toLocaleString()}</div>
                                     </div>
                                 </div>
@@ -825,7 +827,7 @@ export default function Dashboard() {
                                         </div>
                                         <div style={{ flex: 1, minWidth: 0 }}>
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
-                                                <span style={{ fontSize: '12px', fontWeight: mail.flags?.includes('\\Seen') ? 500 : 900, color: mail.flags?.includes('\\Seen') ? colors.text : '#FFFFFF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '140px' }}>{mail.from?.split('<')[0].trim() || mail.from}</span>
+                                                <span style={{ fontSize: '12px', fontWeight: mail.flags?.includes('\\Seen') ? 500 : 900, color: mail.flags?.includes('\\Seen') ? colors.text : '#FFFFFF', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '140px' }}>{isSentFolder ? (mail.to?.split('<')[0].trim() || mail.to || 'Bilinmeyen') : (mail.from?.split('<')[0].trim() || mail.from)}</span>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                                                     <span style={{ fontSize: '10px', color: colors.subtext, flexShrink: 0 }}>{new Date(mail.date).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })}</span>
                                                     {!mail.flags?.includes('\\Seen') && (
@@ -847,9 +849,9 @@ export default function Dashboard() {
                                     <div style={{ padding: '20px 24px', borderBottom: `1px solid ${colors.mailListBorder}` }}>
                                         <h2 style={{ fontSize: '16px', fontWeight: 700, color: colors.text, marginBottom: '12px' }}>{selectedMail.subject || '(Konu Yok)'}</h2>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                            <div style={{ width: '36px', height: '36px', borderRadius: '18px', background: `linear-gradient(135deg, ${colors.accent}, #c06800)`, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '14px' }}>{selectedMail.from?.charAt(0).toUpperCase()}</div>
+                                            <div style={{ width: '36px', height: '36px', borderRadius: '18px', background: `linear-gradient(135deg, ${colors.accent}, #c06800)`, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '14px' }}>{isSentFolder ? selectedMail.to?.charAt(0).toUpperCase() : selectedMail.from?.charAt(0).toUpperCase()}</div>
                                             <div>
-                                                <div style={{ fontSize: '13px', fontWeight: 600, color: colors.text }}>{selectedMail.from}</div>
+                                                <div style={{ fontSize: '13px', fontWeight: 600, color: colors.text }}>{isSentFolder ? `Kime: ${selectedMail.to || 'Bilinmeyen'}` : selectedMail.from}</div>
                                                 <div style={{ fontSize: '11px', color: colors.subtext }}>{new Date(selectedMail.date).toLocaleString()}</div>
                                             </div>
                                         </div>
