@@ -27,6 +27,9 @@ export default function Dashboard() {
     const [isComposeOpen, setIsComposeOpen] = useState(false);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+    const [notificationSettings, setNotificationSettings] = useState<'pending' | 'granted' | 'denied'>('pending');
+    const [signature, setSignature] = useState("");
+    const [isEditingSignature, setIsEditingSignature] = useState(false);
     const [composeData, setComposeData] = useState({ to: "", subject: "", body: "", cc: "", bcc: "" });
     const [showCc, setShowCc] = useState(false);
     const [showBcc, setShowBcc] = useState(false);
@@ -117,6 +120,13 @@ export default function Dashboard() {
         setWeatherCity(storedCity);
         fetchWidgetData(storedCity);
         fetchQuota();
+
+        const sig = localStorage.getItem("softigo_signature");
+        if (sig) setSignature(sig);
+
+        if ("Notification" in window) {
+            setNotificationSettings(Notification.permission as any);
+        }
     }, []); // Empty deps = mount only, router is stable within session
 
     // Re-fetch mails only when selected folder changes
@@ -325,11 +335,22 @@ export default function Dashboard() {
         }
     };
 
+    const openComposeWithSignature = () => {
+        const sigStr = signature ? `<br><br>--<br><div style="color: #64748B; font-size: 13px;">${signature.replace(/\n/g, '<br>')}</div>` : "";
+        setComposeData({ to: "", subject: "", body: sigStr, cc: "", bcc: "" });
+        setShowCc(false);
+        setShowBcc(false);
+        setDraftUid(null);
+        setAttachments([]);
+        setIsComposeOpen(true);
+    };
+
     const handleReplyMail = (mail: any) => {
+        const sigStr = signature ? `<br><br>--<br><div style="color: #64748B; font-size: 13px;">${signature.replace(/\n/g, '<br>')}</div>` : "";
         setComposeData({
             to: mail.from,
             subject: `Re: ${mail.subject}`,
-            body: `<br><br><br><div style="border-left: 2px solid #E2E8F0; padding-left: 16px; margin-left: 4px; color: #64748B;">
+            body: `${sigStr}<br><br><div style="border-left: 2px solid #E2E8F0; padding-left: 16px; margin-left: 4px; color: #64748B;">
                 <strong>Kimden:</strong> ${mail.from}<br>
                 <strong>Tarih:</strong> ${new Date(mail.date).toLocaleString()}<br>
                 <strong>Konu:</strong> ${mail.subject}<br><br>
@@ -492,7 +513,7 @@ export default function Dashboard() {
                         <img src="/logo.png" alt="Softigo" style={{ height: '56px' }} />
                         <span style={{ fontWeight: 700, fontSize: '20px', color: colors.text, letterSpacing: '-0.3px' }}>Softigo Mail</span>
                     </div>
-                    <button onClick={() => setIsComposeOpen(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <button onClick={openComposeWithSignature} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Search size={22} color={colors.accent} />
                     </button>
                 </header>
@@ -668,7 +689,7 @@ export default function Dashboard() {
 
                     {/* ── DESKTOP ACTION BAR ── */}
                     <div style={{ height: '44px', backgroundColor: colors.headerBg, borderBottom: `1px solid ${colors.mailListBorder}`, display: 'flex', alignItems: 'center', padding: '0 16px', gap: '8px', flexShrink: 0 }}>
-                        <button onClick={() => setIsComposeOpen(true)} style={{ background: `linear-gradient(90deg, ${colors.accent}, #c06800)`, color: 'white', border: 'none', padding: '5px 14px', borderRadius: '4px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
+                        <button onClick={openComposeWithSignature} style={{ background: `linear-gradient(90deg, ${colors.accent}, #c06800)`, color: 'white', border: 'none', padding: '5px 14px', borderRadius: '4px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
                             <Send size={13} /> Oluştur
                         </button>
                         <button onClick={() => fetchMails(selectedFolder)} style={{ background: 'none', border: 'none', color: colors.subtext, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', padding: '5px 8px' }}>
@@ -1009,7 +1030,7 @@ export default function Dashboard() {
 
             {/* ── MOBILE COMPOSE FAB ── */}
             {isMobile && !isIframeFullscreen && (
-                <button onClick={() => setIsComposeOpen(true)} style={{ position: 'fixed', right: '20px', bottom: '86px', width: '56px', height: '56px', borderRadius: '28px', backgroundColor: colors.accent, color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 4px 16px ${colors.accent}88`, zIndex: 100 }}>
+                <button onClick={openComposeWithSignature} style={{ position: 'fixed', right: '20px', bottom: '86px', width: '56px', height: '56px', borderRadius: '28px', backgroundColor: colors.accent, color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 4px 16px ${colors.accent}88`, zIndex: 100 }}>
                     <Mail size={24} />
                 </button>
             )}
@@ -1194,11 +1215,38 @@ export default function Dashboard() {
                                 </div>
                                 <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <span>Bildirimler</span>
-                                    <span style={{ fontSize: '12px', color: colors.subtext, padding: '4px 8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}>Çok Yakında</span>
+                                    <button onClick={() => {
+                                        if (!("Notification" in window)) return alert("Tarayıcınız bildirimleri desteklemiyor.");
+                                        if (notificationSettings === 'granted') return alert("Bildirimleri artık sadece tarayıcı ayarlarınızdan kapatabilirsiniz.");
+                                        Notification.requestPermission().then(p => setNotificationSettings(p as any));
+                                    }} style={{ background: notificationSettings === 'granted' ? 'rgba(34, 197, 94, 0.1)' : colors.inputBg, border: `1px solid ${notificationSettings === 'granted' ? '#22C55E' : colors.sidebarBorder}`, color: notificationSettings === 'granted' ? '#22C55E' : colors.text, padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>
+                                        {notificationSettings === 'granted' ? 'Açık' : (notificationSettings === 'denied' ? 'Engellendi' : 'İzin İste')}
+                                    </button>
                                 </div>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <span>İmza Ayarları</span>
-                                    <span style={{ fontSize: '12px', color: colors.subtext, padding: '4px 8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }}>Çok Yakında</span>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span>İmza Ayarları</span>
+                                        <button onClick={() => setIsEditingSignature(!isEditingSignature)} style={{ background: colors.inputBg, border: `1px solid ${colors.sidebarBorder}`, color: colors.text, padding: '4px 10px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }}>
+                                            {isEditingSignature ? 'Vazgeç' : 'Düzenle'}
+                                        </button>
+                                    </div>
+                                    <AnimatePresence>
+                                        {isEditingSignature && (
+                                            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ overflow: 'hidden' }}>
+                                                <div style={{ marginTop: '8px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                                    <textarea 
+                                                        value={signature} 
+                                                        onChange={(e) => setSignature(e.target.value)}
+                                                        placeholder="E-postalarınızın altına eklenecek imzanızı yazın..."
+                                                        style={{ width: '100%', minHeight: '80px', padding: '10px', borderRadius: '8px', border: `1px solid ${colors.sidebarBorder}`, background: 'rgba(0,0,0,0.05)', color: colors.text, fontSize: '13px', outline: 'none', resize: 'vertical' }}
+                                                    />
+                                                    <button onClick={() => { localStorage.setItem('softigo_signature', signature); alert("İmza kaydedildi!"); setIsEditingSignature(false); }} style={{ alignSelf: 'flex-end', background: colors.accent, color: 'white', border: 'none', padding: '6px 14px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>
+                                                        Kaydet
+                                                    </button>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                             </div>
                             <div style={{ padding: '16px 20px', borderTop: `1px solid ${colors.sidebarBorder}`, display: 'flex', justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.1)' }}>
