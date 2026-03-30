@@ -33,7 +33,7 @@ export default function LoginPage() {
     });
 
     useEffect(() => {
-        const token = localStorage.getItem("softigo_token");
+        const token = sessionStorage.getItem("softigo_token");
         if (token) {
             router.push("/dashboard");
         }
@@ -86,8 +86,8 @@ export default function LoginPage() {
             const data = await response.json();
 
             if (data.success) {
-                localStorage.setItem("softigo_token", data.token);
-                localStorage.setItem("softigo_user", credentials.email);
+                sessionStorage.setItem("softigo_token", data.token);
+                sessionStorage.setItem("softigo_user", credentials.email);
                 router.push("/dashboard");
             } else {
                 setError(data.message || "Giriş başarısız. Bilgilerinizi kontrol edin.");
