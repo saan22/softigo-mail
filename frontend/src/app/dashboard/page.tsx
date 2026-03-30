@@ -763,7 +763,7 @@ export default function Dashboard() {
                             <input type="text" placeholder="E-postaları ara..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ border: 'none', background: 'none', outline: 'none', fontSize: '14px', width: '100%', color: '#ffffff', fontWeight: 500, letterSpacing: '0.5px' }} />
                         </div>
                         <div style={{ flex: 1 }} />
-                        <span style={{ color: colors.subtext, fontSize: '13px' }}>{userEmail}</span>
+                        <span style={{ color: colors.accent, fontSize: '14px', fontWeight: 600, letterSpacing: '0.5px' }}>{userEmail}</span>
                         <button onClick={toggleTheme} title="Temayı Değiştir" style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,140,0,0.2)', borderRadius: '50%', width: '34px', height: '34px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
                             {theme === 'dark' ? <Sun size={16} color={colors.subtext} /> : <Moon size={16} color={colors.subtext} />}
                         </button>
