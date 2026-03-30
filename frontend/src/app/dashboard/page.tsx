@@ -759,7 +759,7 @@ export default function Dashboard() {
                         <img src="/logo.png" alt="Softigo" style={{ height: '72px', filter: 'drop-shadow(0 0 8px rgba(255,140,0,0.3))' }} />
                         <div style={{ flex: 1, display: 'flex', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,140,0,0.2)', borderRadius: '8px', padding: '6px 12px', gap: '8px', maxWidth: '400px' }}>
                             <Search size={15} style={{ color: colors.subtext }} />
-                            <input type="text" placeholder="E-postaları ara..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ border: 'none', background: 'none', outline: 'none', fontSize: '13px', width: '100%', color: colors.text }} />
+                            <input type="text" placeholder="E-postaları ara..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ border: 'none', background: 'none', outline: 'none', fontSize: '14px', width: '100%', color: '#ffffff', fontWeight: 500, letterSpacing: '0.5px' }} />
                         </div>
                         <div style={{ flex: 1 }} />
                         <span style={{ color: colors.subtext, fontSize: '13px' }}>{userEmail}</span>
