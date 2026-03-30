@@ -109,8 +109,8 @@ export default function Dashboard() {
     // Auth + initial data fetch — runs ONCE on mount only
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => {
-        const token = localStorage.getItem("softigo_token");
-        const email = localStorage.getItem("softigo_user");
+        const token = sessionStorage.getItem("softigo_token");
+        const email = sessionStorage.getItem("softigo_user");
 
         if (!token) {
             router.push("/");
@@ -168,7 +168,7 @@ export default function Dashboard() {
 
     // Re-fetch mails only when selected folder changes
     useEffect(() => {
-        const token = localStorage.getItem("softigo_token");
+        const token = sessionStorage.getItem("softigo_token");
         if (!token) return;
         fetchMails(selectedFolder);
     }, [selectedFolder]);
@@ -190,7 +190,7 @@ export default function Dashboard() {
     };
 
     const fetchQuota = async () => {
-        const token = localStorage.getItem("softigo_token");
+        const token = sessionStorage.getItem("softigo_token");
         if (!token) return;
         setQuotaLoading(true);
         try {
@@ -213,7 +213,7 @@ export default function Dashboard() {
     };
 
     const fetchFolders = async () => {
-        const token = localStorage.getItem("softigo_token");
+        const token = sessionStorage.getItem("softigo_token");
         setSelectedUids([]);
         try {
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/folders`, {
@@ -241,7 +241,7 @@ export default function Dashboard() {
         const requestId = ++fetchIdRef.current;
         setLoading(true);
         setSelectedMail(null);
-        const token = localStorage.getItem("softigo_token");
+        const token = sessionStorage.getItem("softigo_token");
 
         try {
             const encodedFolder = encodeURIComponent(folder);
@@ -258,8 +258,8 @@ export default function Dashboard() {
             }
 
             if (response.status === 401) {
-                localStorage.removeItem("softigo_token");
-                localStorage.removeItem("softigo_user");
+                sessionStorage.removeItem("softigo_token");
+                sessionStorage.removeItem("softigo_user");
                 window.location.href = "/";
                 return;
             }
@@ -283,6 +283,7 @@ export default function Dashboard() {
         if (confirm("Oturumu kapatmak istediğinizden emin misiniz?")) {
             const theme = localStorage.getItem("softigo_theme");
             localStorage.clear();
+            sessionStorage.clear();
             if (theme) {
                 localStorage.setItem("softigo_theme", theme);
             }
@@ -293,7 +294,7 @@ export default function Dashboard() {
     const handleMailSelect = async (mail: any) => {
         setSelectedMail({ ...mail, loading: true });
         if (isMobile) setMobileView('detail');
-        const token = localStorage.getItem("softigo_token");
+        const token = sessionStorage.getItem("softigo_token");
         try {
             const encodedFolder = encodeURIComponent(selectedFolder);
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/mails/${mail.uid}?folder=${encodedFolder}`, {
@@ -315,7 +316,7 @@ export default function Dashboard() {
 
     const handleDeleteMail = async (uid: number | string) => {
         if (!confirm("Seçili ileti(leri) silmek istediğinizden emin misiniz?")) return;
-        const token = localStorage.getItem("softigo_token");
+        const token = sessionStorage.getItem("softigo_token");
         try {
             const encodedFolder = encodeURIComponent(selectedFolder);
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/mails/${uid}?folder=${encodedFolder}`, {
@@ -335,7 +336,7 @@ export default function Dashboard() {
     };
 
     const handleMarkAsSpam = async (uid: number | string) => {
-        const token = localStorage.getItem("softigo_token");
+        const token = sessionStorage.getItem("softigo_token");
         try {
             const encodedFolder = encodeURIComponent(selectedFolder);
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/mails/${uid}/spam?folder=${encodedFolder}`, {
@@ -354,7 +355,7 @@ export default function Dashboard() {
     };
 
     const handleArchiveMail = async (uid: number | string) => {
-        const token = localStorage.getItem("softigo_token");
+        const token = sessionStorage.getItem("softigo_token");
         try {
             const encodedFolder = encodeURIComponent(selectedFolder);
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/mails/${uid}/archive?folder=${encodedFolder}`, {
@@ -383,7 +384,7 @@ export default function Dashboard() {
     };
 
     const savePreferences = async (data: any) => {
-        const token = localStorage.getItem("softigo_token");
+        const token = sessionStorage.getItem("softigo_token");
         if (!token) return;
         try {
             await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/preferences`, {
@@ -401,7 +402,7 @@ export default function Dashboard() {
         if (!newTaskText.trim()) return;
         const newTasks = [{ id: Date.now().toString(), text: newTaskText, completed: false, date: newTaskDate, priority: newTaskPriority }, ...tasks];
         setTasks(newTasks);
-        localStorage.setItem(`softigo_tasks_${localStorage.getItem("softigo_user") || "default"}`, JSON.stringify(newTasks));
+        localStorage.setItem(`softigo_tasks_${sessionStorage.getItem("softigo_user") || "default"}`, JSON.stringify(newTasks));
         savePreferences({ tasks: newTasks });
         setNewTaskText("");
         setNewTaskDate("");
@@ -411,21 +412,21 @@ export default function Dashboard() {
     const clearCompletedTasks = () => {
         const newTasks = tasks.filter(t => !t.completed);
         setTasks(newTasks);
-        localStorage.setItem(`softigo_tasks_${localStorage.getItem("softigo_user") || "default"}`, JSON.stringify(newTasks));
+        localStorage.setItem(`softigo_tasks_${sessionStorage.getItem("softigo_user") || "default"}`, JSON.stringify(newTasks));
         savePreferences({ tasks: newTasks });
     };
 
     const toggleTask = (id: string) => {
         const newTasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
         setTasks(newTasks);
-        localStorage.setItem(`softigo_tasks_${localStorage.getItem("softigo_user") || "default"}`, JSON.stringify(newTasks));
+        localStorage.setItem(`softigo_tasks_${sessionStorage.getItem("softigo_user") || "default"}`, JSON.stringify(newTasks));
         savePreferences({ tasks: newTasks });
     };
 
     const deleteTask = (id: string) => {
         const newTasks = tasks.filter(t => t.id !== id);
         setTasks(newTasks);
-        localStorage.setItem(`softigo_tasks_${localStorage.getItem("softigo_user") || "default"}`, JSON.stringify(newTasks));
+        localStorage.setItem(`softigo_tasks_${sessionStorage.getItem("softigo_user") || "default"}`, JSON.stringify(newTasks));
         savePreferences({ tasks: newTasks });
     };
 
@@ -494,7 +495,7 @@ export default function Dashboard() {
     const handleSend = async (e: React.FormEvent) => {
         e.preventDefault();
         setSending(true);
-        const token = localStorage.getItem("softigo_token");
+        const token = sessionStorage.getItem("softigo_token");
         try {
             const formData = new FormData();
             formData.append('to', composeData.to);
@@ -728,7 +729,7 @@ export default function Dashboard() {
                                     </div>
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                         {selectedMail.attachments.map((att: any, idx: number) => (
-                                            <a key={idx} href={`${process.env.NEXT_PUBLIC_API_URL}/api/mails/${selectedMail.uid}/attachments/${encodeURIComponent(att.filename)}?folder=${encodeURIComponent(selectedFolder)}&token=${encodeURIComponent(localStorage.getItem('softigo_token') || '')}`} target="_blank" rel="noopener noreferrer" onClick={(e) => { if (!confirm(`"${att.filename}" dosyasını indirmek istiyor musunuz?`)) e.preventDefault(); }} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', backgroundColor: 'white', border: '1px solid #E2E8F0', borderRadius: '8px', textDecoration: 'none', color: '#1E293B', flex: '1 1 auto', minWidth: '120px' }}>
+                                            <a key={idx} href={`${process.env.NEXT_PUBLIC_API_URL}/api/mails/${selectedMail.uid}/attachments/${encodeURIComponent(att.filename)}?folder=${encodeURIComponent(selectedFolder)}&token=${encodeURIComponent(sessionStorage.getItem('softigo_token') || '')}`} target="_blank" rel="noopener noreferrer" onClick={(e) => { if (!confirm(`"${att.filename}" dosyasını indirmek istiyor musunuz?`)) e.preventDefault(); }} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', backgroundColor: 'white', border: '1px solid #E2E8F0', borderRadius: '8px', textDecoration: 'none', color: '#1E293B', flex: '1 1 auto', minWidth: '120px' }}>
                                                 <FileText size={16} style={{ color: colors.accent, flexShrink: 0 }} />
                                                 <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: '13px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{att.filename}</div><div style={{ fontSize: '11px', color: '#64748B' }}>{(att.size / 1024).toFixed(1)} KB</div></div>
                                                 <Download size={14} style={{ color: '#94A3B8', flexShrink: 0 }} />
@@ -979,7 +980,7 @@ export default function Dashboard() {
                                             </div>
                                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                                 {selectedMail.attachments.map((att: any, idx: number) => (
-                                                    <a key={idx} href={`${process.env.NEXT_PUBLIC_API_URL}/api/mails/${selectedMail.uid}/attachments/${encodeURIComponent(att.filename)}?folder=${encodeURIComponent(selectedFolder)}&token=${encodeURIComponent(localStorage.getItem('softigo_token') || '')}`} target="_blank" rel="noopener noreferrer" onClick={(e) => { if (!confirm(`"${att.filename}" dosyasını indirmek istiyor musunuz?`)) e.preventDefault(); }} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 10px', backgroundColor: 'rgba(255,140,0,0.1)', border: `1px solid ${colors.accent}44`, borderRadius: '6px', textDecoration: 'none', color: colors.text }}>
+                                                    <a key={idx} href={`${process.env.NEXT_PUBLIC_API_URL}/api/mails/${selectedMail.uid}/attachments/${encodeURIComponent(att.filename)}?folder=${encodeURIComponent(selectedFolder)}&token=${encodeURIComponent(sessionStorage.getItem('softigo_token') || '')}`} target="_blank" rel="noopener noreferrer" onClick={(e) => { if (!confirm(`"${att.filename}" dosyasını indirmek istiyor musunuz?`)) e.preventDefault(); }} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 10px', backgroundColor: 'rgba(255,140,0,0.1)', border: `1px solid ${colors.accent}44`, borderRadius: '6px', textDecoration: 'none', color: colors.text }}>
                                                         <FileText size={14} style={{ color: colors.accent }} />
                                                         <div><div style={{ fontSize: '12px', fontWeight: 500, maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{att.filename}</div><div style={{ fontSize: '10px', color: colors.subtext }}>{(att.size / 1024).toFixed(1)} KB</div></div>
                                                         <Download size={13} style={{ color: colors.subtext }} />
@@ -1326,7 +1327,7 @@ export default function Dashboard() {
                                                         />
                                                     </div>
                                                     <button onClick={() => { 
-                                                        localStorage.setItem(`softigo_signature_${localStorage.getItem("softigo_user") || "default"}`, signature); 
+                                                        localStorage.setItem(`softigo_signature_${sessionStorage.getItem("softigo_user") || "default"}`, signature); 
                                                         savePreferences({ signature });
                                                         alert("İmza kaydedildi!"); 
                                                         setIsEditingSignature(false); 
@@ -1426,3 +1427,4 @@ export default function Dashboard() {
         </div >
     );
 }
+
