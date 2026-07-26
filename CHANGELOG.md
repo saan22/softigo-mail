@@ -5,6 +5,17 @@
 
 ---
 
+## [v2.0.0] — Geliştirme aşamasında (Unreleased)
+
+> Bu sürüm `v2` dalında geliştirilmektedir.
+> Temel alınan kararlı sürüm: **v1.5.0** (canlıda çalışan hâli).
+
+### 🚧 Planlanan
+
+- _(Yeni özellikler buraya eklenecek)_
+
+---
+
 ## [v1.5.0] — 2026-07-26
 
 > Yeni sunucuya (VDS) taşınma ve güvenlik sıkılaştırma sürümü.
