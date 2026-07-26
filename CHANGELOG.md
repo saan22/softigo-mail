@@ -5,6 +5,37 @@
 
 ---
 
+## [v1.5.0] — 2026-07-26
+
+> Yeni sunucuya (VDS) taşınma ve güvenlik sıkılaştırma sürümü.
+> **v2 geliştirmeleri bu sürümün üzerine başlar.**
+
+### 🔐 Güvenlik
+
+- **Şifreleme anahtarı depodan çıkarıldı:** `ENCRYPTION_KEY` `docker-compose.yml` içinde
+  açık metin commit'lenmişti ve depo public olduğu için herkese görünüyordu. Bu anahtar
+  oturum token'larını şifreliyor; token içinde kullanıcının IMAP e-posta ve parolası taşınıyor.
+  Anahtar **yenilendi (rotate)** ve `backend/.env` dosyasına taşındı (`env_file` ile okunuyor).
+- **Uygulama portları dışarıya kapatıldı:** 3000 ve 3005 artık yalnızca `127.0.0.1`'e bağlı;
+  tüm erişim nginx üzerinden. UFW etkinleştirildi (22/80/443).
+- **Yapılandırma depodan ayrıldı:** `NEXT_PUBLIC_API_URL` sabit kodlanmak yerine `.env`'den okunuyor.
+
+### 🚀 Dağıtım (Deployment)
+
+- Proje yeni VDS'e Docker ile kuruldu; `business.softigo.com.tr` domaini devreye alındı.
+- nginx ters vekil yapılandırıldı: `/api/*` → backend, geri kalan → frontend.
+- **Cloudflare 521 hatası çözüldü:** Cloudflare "Full" modunda origin'e 443'ten bağlandığı için
+  nginx'e HTTPS dinleyicisi eklendi (yalnızca 80 dinlemek yeterli değildi).
+- Canlı yapılandırma `deploy/` klasörüne alındı (nginx config + kurulum notları).
+- Sunucu kernel güncellemesi yapıldı (`5.15.0-186`).
+
+### ⚠️ Yükseltme notu
+
+Şifreleme anahtarı yenilendiği için **açık oturumlar düşer**; kullanıcılar yeniden giriş yapar.
+Kalıcı veri kaybı yoktur (anahtar yalnızca oturum token'ını şifreler).
+
+---
+
 ## [v1.4.0] — 2026-03-26
 
 ### ✨ Gelişmiş İmza ve Zengin Metin Editörü
