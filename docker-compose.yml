@@ -1,18 +1,15 @@
-version: '3.8'
-
 services:
   backend:
     build:
       context: ./backend
     restart: always
-    environment:
-      - PORT=3005
-      - IMAP_HOST=mail.softigo.com
-      - IMAP_PORT=993
-      - IMAP_SECURE=true
-      - ENCRYPTION_KEY=REDACTED_ROTATED_SECRET
+    # Gizli bilgiler ve ortam ayarlari backend/.env dosyasindan okunur (git'e girmez).
+    # Ornek icin backend/.env.example dosyasina bakiniz.
+    env_file:
+      - ./backend/.env
     ports:
-      - "3005:3005"
+      # Sadece localhost'a baglanir; disariya erisim nginx uzerinden saglanir.
+      - "127.0.0.1:3005:3005"
     networks:
       - softigo-network
     volumes:
@@ -22,10 +19,11 @@ services:
     build:
       context: ./frontend
       args:
-        - NEXT_PUBLIC_API_URL=https://email.softigo.com.tr
+        # Kok dizindeki .env dosyasindan okunur (orn. https://business.softigo.com.tr)
+        - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:3005}
     restart: always
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     depends_on:
       - backend
     networks:
