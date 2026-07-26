@@ -4,6 +4,9 @@ Bu rehber, Softigo Mail projesini Ubuntu 22.04 tabanlı bir VDS sunucusuna en sa
 
 ## 1. Hazırlık (Sunucu Kurulumu)
 
+> ⚠️ **Sunucu parolası, SSH anahtarı gibi kimlik bilgilerini bu dosyaya yazmayın.**
+> Depo herkese açık; buraya yazılan her şey üçüncü kişilerce görülebilir.
+> Bu tür bilgileri bir parola yöneticisinde saklayın.
 
 Sunucunuza SSH ile bağlandıktan sonra sistem güncellemelerini yapın ve gerekli araçları kurun:
 
