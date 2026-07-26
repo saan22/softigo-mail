@@ -5,6 +5,42 @@
 
 ---
 
+## [v1.5.1] — 2026-07-26
+
+> 🔐 **Güvenlik sürümü.** Müşteri kullanımı öncesi yapılan denetimde bulunan
+> 3 kritik açık kapatıldı. Bu sürüme yükseltme önemle tavsiye edilir.
+
+### 🔴 Kapatılan kritik açıklar
+
+- **Zararlı e-posta ile hesap ele geçirme (XSS):** Mail içeriği `sandbox`
+  özniteliği olmayan bir `srcDoc` iframe'inde gösteriliyordu. Sandbox'sız
+  `srcDoc`, ana sayfayla aynı origin'de çalışır — mail içindeki bir `<script>`
+  `parent.sessionStorage` üzerinden oturum token'ını okuyabiliyordu. Kullanıcının
+  mail'i açması hesabın ele geçirilmesi için yeterliydi. Her iki mail okuyucuya
+  `sandbox` ve `referrerPolicy="no-referrer"` eklendi.
+- **Oturum token'ının sunucu kayıtlarına sızması:** Ek dosya indirme bağlantıları
+  token'ı URL sorgu dizesine koyuyordu; token nginx erişim kayıtlarına, backend
+  loglarına ve tarayıcı geçmişine düşüyordu (canlı loglarda doğrulandı). İndirme
+  artık `Authorization` başlığıyla yapılıyor; sunucu URL'den token kabul etmiyor.
+- **Mail sunucusu sertifikasının doğrulanmaması:** Tüm IMAP bağlantılarında
+  (17 nokta) `rejectUnauthorized: false` kullanılıyordu; aradaki-adam saldırısıyla
+  müşteri parolaları ele geçirilebilirdi. Doğrulama açıldı.
+
+### 🔒 Ek sıkılaştırma
+
+- **Şifresiz porta düşme yarışı giderildi:** Giriş akışı 993 ve 143 portlarını
+  aynı anda yarıştırıyor, şifresiz port (143) yarışı kazandığında parola
+  şifrelenmemiş bağlantıdan gidebiliyordu. Artık önce TLS (993) denenir; 143
+  yalnızca geri dönüş olarak kullanılır ve bağlantının şifreli olduğu doğrulanır.
+
+### ⚠️ Yükseltme notu
+
+Bu sürümle birlikte şifreleme anahtarı yenilendiği için açık oturumlar düşer;
+kullanıcılar yeniden giriş yapar. Mail sunucusu geçersiz/eşleşmeyen sertifika
+kullanıyorsa giriş artık reddedilir — bu kasıtlıdır.
+
+---
+
 ## [v1.5.0] — 2026-07-26
 
 > Yeni sunucuya (VDS) taşınma ve güvenlik sıkılaştırma sürümü.
