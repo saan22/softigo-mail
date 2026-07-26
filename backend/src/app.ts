@@ -114,7 +114,7 @@ fastify.get('/api/folders', async (request, reply) => {
             port: parseInt(sessionData.port || process.env.IMAP_PORT),
             secure: sessionData.secure ?? (process.env.IMAP_SECURE === 'true'),
             auth: { user: sessionData.email, pass: sessionData.password },
-            tls: { rejectUnauthorized: false },
+            tls: { rejectUnauthorized: true },
             logger: false
         });
 
@@ -185,7 +185,7 @@ fastify.post('/api/login', async (request, reply) => {
             port: testPort,
             secure: testSecure,
             auth: { user: email, pass: password },
-            tls: { rejectUnauthorized: false },
+            tls: { rejectUnauthorized: true },
             logger: false as any,
             greetingTimeout: 5000
         });
@@ -211,6 +211,14 @@ fastify.post('/api/login', async (request, reply) => {
             ]);
 
             clearTimeout(timerId!);
+
+            // 143'e bağlanıldığında ImapFlow STARTTLS ile yükseltme yapar; yükseltme
+            // gerçekleşmediyse parola düz metin gider, bu bağlantıyı kabul etme.
+            if ((client as any).secureConnection === false) {
+                await client.logout();
+                throw new Error('Bağlantı şifrelenemedi (STARTTLS desteklenmiyor)');
+            }
+
             await client.logout();
             console.log(`✅ Bağlantı başarılı: ${testHost}:${testPort}`);
             return { success: true, host: testHost, port: testPort, secure: testSecure };
@@ -234,35 +242,50 @@ fastify.post('/api/login', async (request, reply) => {
             return reply.status(400).send({ success: false, message: 'Geçersiz e-posta adresi.' });
         }
 
-        const strategies = [
+        // Doğrudan TLS (993) kullanan sunucular önce denenir. Şifresiz port (143)
+        // yalnızca hiçbiri yanıt vermezse devreye girer: tümü aynı anda yarıştırılırsa
+        // 143 önce cevap verip parolanın şifrelenmemiş bağlantıdan gitmesine yol açabilir.
+        const secureStrategies = [
             { h: `mail.${domain}`, p: 993, s: true },
             { h: `imap.${domain}`, p: 993, s: true },
-            { h: domain, p: 993, s: true },
+            { h: domain, p: 993, s: true }
+        ];
+        const fallbackStrategies = [
             { h: `mail.${domain}`, p: 143, s: false },
             { h: `imap.${domain}`, p: 143, s: false },
             { h: domain, p: 143, s: false }
         ];
 
+        // Aynı gruptaki adaylar eşzamanlı denenir; ilk başarılı olan kazanır.
+        const raceStrategies = (list: typeof secureStrategies) => Promise.any(
+            list.map(strat =>
+                testConnection(strat.h, strat.p, strat.s).then(res => {
+                    if (!res.success) throw res.error; // Reject so Promise.any ignores it
+                    return res;
+                })
+            )
+        );
+
+        let secureError: any = null;
         try {
-            // Run all connection attempts concurrently.
-            // Promise.any resolves with the FIRST promise that fulfills.
-            result = await Promise.any(
-                strategies.map(strat =>
-                    testConnection(strat.h, strat.p, strat.s).then(res => {
-                        if (!res.success) throw res.error; // Reject so Promise.any ignores it
-                        return res;
-                    })
-                )
-            );
+            result = await raceStrategies(secureStrategies);
         } catch (error: any) {
-            // If Promise.any catches, it means ALL promises rejected (AggregateError)
-            // Extract the first useful error (like Authentication failed / Command failed)
-            const errors = error.errors || [error];
-            lastError = errors.find((e: any) =>
-                e?.message?.includes('AUTHENTICATIONFAILED') ||
-                e?.message?.includes('Authentication failed') ||
-                e?.message?.includes('Command failed')
-            ) || errors[0];
+            secureError = error;
+            try {
+                result = await raceStrategies(fallbackStrategies);
+            } catch (fallbackError: any) {
+                // Her iki grup da başarısız oldu (AggregateError).
+                // Kullanıcıya gösterilecek en açıklayıcı hatayı seç.
+                const errors = [
+                    ...(secureError.errors || [secureError]),
+                    ...(fallbackError.errors || [fallbackError])
+                ];
+                lastError = errors.find((e: any) =>
+                    e?.message?.includes('AUTHENTICATIONFAILED') ||
+                    e?.message?.includes('Authentication failed') ||
+                    e?.message?.includes('Command failed')
+                ) || errors[0];
+            }
         }
     }
 
@@ -309,7 +332,7 @@ fastify.get('/api/mails', async (request, reply) => {
             secure: sessionData.secure ?? (process.env.IMAP_SECURE === 'true'),
             auth: { user: sessionData.email, pass: sessionData.password },
             tls: {
-                rejectUnauthorized: false
+                rejectUnauthorized: true
             },
             logger: false
         });
@@ -464,7 +487,7 @@ fastify.post('/api/send', async (request, reply) => {
                     pass: sessionData.password
                 },
                 tls: {
-                    rejectUnauthorized: false
+                    rejectUnauthorized: true
                 },
                 connectionTimeout: 15000,
                 greetingTimeout: 15000
@@ -501,7 +524,7 @@ fastify.post('/api/send', async (request, reply) => {
             port: parseInt(sessionData.port || process.env.IMAP_PORT),
             secure: sessionData.secure ?? (process.env.IMAP_SECURE === 'true'),
             auth: { user: sessionData.email, pass: sessionData.password },
-            tls: { rejectUnauthorized: false },
+            tls: { rejectUnauthorized: true },
             logger: false
         });
 
@@ -545,7 +568,7 @@ fastify.delete('/api/mails/:uid', async (request, reply) => {
             port: parseInt(sessionData.port || process.env.IMAP_PORT),
             secure: sessionData.secure ?? (process.env.IMAP_SECURE === 'true'),
             auth: { user: sessionData.email, pass: sessionData.password },
-            tls: { rejectUnauthorized: false },
+            tls: { rejectUnauthorized: true },
             logger: false
         });
 
@@ -612,7 +635,7 @@ fastify.post('/api/mails/:uid/spam', async (request, reply) => {
             port: parseInt(sessionData.port || process.env.IMAP_PORT),
             secure: sessionData.secure ?? (process.env.IMAP_SECURE === 'true'),
             auth: { user: sessionData.email, pass: sessionData.password },
-            tls: { rejectUnauthorized: false },
+            tls: { rejectUnauthorized: true },
             logger: false
         });
 
@@ -653,7 +676,7 @@ fastify.delete('/api/trash/empty', async (request, reply) => {
             port: parseInt(sessionData.port || process.env.IMAP_PORT),
             secure: sessionData.secure ?? (process.env.IMAP_SECURE === 'true'),
             auth: { user: sessionData.email, pass: sessionData.password },
-            tls: { rejectUnauthorized: false },
+            tls: { rejectUnauthorized: true },
             logger: false
         });
 
@@ -700,7 +723,7 @@ fastify.post('/api/mails/:uid/move', async (request, reply) => {
             port: parseInt(sessionData.port || process.env.IMAP_PORT),
             secure: sessionData.secure ?? (process.env.IMAP_SECURE === 'true'),
             auth: { user: sessionData.email, pass: sessionData.password },
-            tls: { rejectUnauthorized: false },
+            tls: { rejectUnauthorized: true },
             logger: false
         });
 
@@ -754,7 +777,7 @@ fastify.post('/api/mails/:uid/archive', async (request, reply) => {
             port: parseInt(sessionData.port || process.env.IMAP_PORT),
             secure: sessionData.secure ?? (process.env.IMAP_SECURE === 'true'),
             auth: { user: sessionData.email, pass: sessionData.password },
-            tls: { rejectUnauthorized: false },
+            tls: { rejectUnauthorized: true },
             logger: false
         });
 
@@ -808,7 +831,7 @@ fastify.post('/api/mails/:uid/unread', async (request, reply) => {
             port: parseInt(sessionData.port || process.env.IMAP_PORT),
             secure: sessionData.secure ?? (process.env.IMAP_SECURE === 'true'),
             auth: { user: sessionData.email, pass: sessionData.password },
-            tls: { rejectUnauthorized: false },
+            tls: { rejectUnauthorized: true },
             logger: false
         });
 
@@ -848,10 +871,12 @@ fastify.post('/api/mails/:uid/unread', async (request, reply) => {
 // Download Attachment
 fastify.get('/api/mails/:uid/attachments/:filename', async (request, reply) => {
     const { uid, filename } = request.params as any;
-    const { folder = 'INBOX', token: queryToken } = request.query as any;
-    const token = request.headers['authorization'] || queryToken;
+    const { folder = 'INBOX' } = request.query as any;
+    // Token yalnızca başlıktan alınır. URL'den kabul edilirse erişim kayıtlarına,
+    // tarayıcı geçmişine ve Referer başlığına sızar.
+    const token = request.headers['authorization'];
 
-    console.log(`📥 Dosya indirme isteği: ${filename}, F: ${folder}, Token Var mı: ${!!token}, QToken: ${!!queryToken}`);
+    console.log(`📥 Dosya indirme isteği: ${filename}, F: ${folder}, Token Var mı: ${!!token}`);
 
     if (!token) {
         console.warn('❌ Dosya indirme başarısız: Token yok');
@@ -867,7 +892,7 @@ fastify.get('/api/mails/:uid/attachments/:filename', async (request, reply) => {
             port: parseInt(sessionData.port || process.env.IMAP_PORT),
             secure: sessionData.secure ?? (process.env.IMAP_SECURE === 'true'),
             auth: { user: sessionData.email, pass: sessionData.password },
-            tls: { rejectUnauthorized: false },
+            tls: { rejectUnauthorized: true },
             logger: false
         });
 
@@ -917,8 +942,9 @@ fastify.get('/api/mails/:uid/attachments/:filename', async (request, reply) => {
 // Download Raw Email (.eml)
 fastify.get('/api/mails/:uid/download', async (request, reply) => {
     const { uid } = request.params as any;
-    const { folder = 'INBOX', token: queryToken } = request.query as any;
-    const token = request.headers['authorization'] || queryToken;
+    const { folder = 'INBOX' } = request.query as any;
+    // Token yalnızca başlıktan alınır — bkz. ek dosya indirme uç noktası.
+    const token = request.headers['authorization'];
 
     if (!token) return reply.status(401).send({ error: 'Yetkisiz erişim' });
 
@@ -931,7 +957,7 @@ fastify.get('/api/mails/:uid/download', async (request, reply) => {
             port: parseInt(sessionData.port || process.env.IMAP_PORT),
             secure: sessionData.secure ?? (process.env.IMAP_SECURE === 'true'),
             auth: { user: sessionData.email, pass: sessionData.password },
-            tls: { rejectUnauthorized: false },
+            tls: { rejectUnauthorized: true },
             logger: false
         });
 
@@ -984,7 +1010,7 @@ fastify.get('/api/mails/:uid', async (request, reply) => {
             secure: sessionData.secure ?? (process.env.IMAP_SECURE === 'true'),
             auth: { user: sessionData.email, pass: sessionData.password },
             tls: {
-                rejectUnauthorized: false
+                rejectUnauthorized: true
             },
             logger: false
         });
@@ -1145,7 +1171,7 @@ fastify.post('/api/drafts', async (request, reply) => {
             port: parseInt(sessionData.port || process.env.IMAP_PORT),
             secure: sessionData.secure ?? (process.env.IMAP_SECURE === 'true'),
             auth: { user: sessionData.email, pass: sessionData.password },
-            tls: { rejectUnauthorized: false },
+            tls: { rejectUnauthorized: true },
             logger: false
         });
 
@@ -1193,7 +1219,7 @@ fastify.post('/api/mails/:uid/draft', async (request, reply) => {
             port: parseInt(sessionData.port || process.env.IMAP_PORT),
             secure: sessionData.secure ?? (process.env.IMAP_SECURE === 'true'),
             auth: { user: sessionData.email, pass: sessionData.password },
-            tls: { rejectUnauthorized: false },
+            tls: { rejectUnauthorized: true },
             logger: false
         });
 
@@ -1240,7 +1266,7 @@ fastify.get('/api/quota', async (request, reply) => {
             port: parseInt(sessionData.port || process.env.IMAP_PORT),
             secure: sessionData.secure ?? (process.env.IMAP_SECURE === 'true'),
             auth: { user: sessionData.email, pass: sessionData.password },
-            tls: { rejectUnauthorized: false },
+            tls: { rejectUnauthorized: true },
             logger: false
         });
 

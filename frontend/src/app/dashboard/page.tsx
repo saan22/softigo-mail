@@ -291,6 +291,36 @@ export default function Dashboard() {
         }
     };
 
+    // Ek dosyayı indirir. Token URL'e konmaz; Authorization başlığıyla gönderilir,
+    // aksi halde sunucu erişim kayıtlarına ve tarayıcı geçmişine düşer.
+    const handleAttachmentDownload = async (uid: number | string, filename: string) => {
+        if (!confirm(`"${filename}" dosyasını indirmek istiyor musunuz?`)) return;
+
+        const token = sessionStorage.getItem("softigo_token");
+        if (!token) return;
+
+        let objectUrl: string | null = null;
+        try {
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/mails/${uid}/attachments/${encodeURIComponent(filename)}?folder=${encodeURIComponent(selectedFolder)}`,
+                { headers: { 'Authorization': token } }
+            );
+            if (!response.ok) throw new Error('Dosya indirilemedi');
+
+            objectUrl = URL.createObjectURL(await response.blob());
+            const link = document.createElement('a');
+            link.href = objectUrl;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (error) {
+            alert('Dosya indirilemedi. Lütfen tekrar deneyin.');
+        } finally {
+            if (objectUrl) URL.revokeObjectURL(objectUrl);
+        }
+    };
+
     const handleMailSelect = async (mail: any) => {
         setSelectedMail({ ...mail, loading: true });
         if (isMobile) setMobileView('detail');
@@ -715,7 +745,11 @@ export default function Dashboard() {
                                 {selectedMail.loading ? (
                                     <div style={{ textAlign: 'center', padding: '40px' }}>Yükleniyor...</div>
                                 ) : (
+                                    {/* sandbox ZORUNLU: mail içeriği güvenilmez. Sandbox olmadan srcDoc
+                                        ana sayfayla aynı origin'de çalışır ve oturum bilgisini okuyabilir. */}
                                     <iframe
+                                        sandbox="allow-popups allow-popups-to-escape-sandbox"
+                                        referrerPolicy="no-referrer"
                                         srcDoc={`<html><head><style>body { font-family: sans-serif; line-height: 1.6; color: #1e293b; margin: 0; padding: 10px; } img { max-width: 100%; height: auto; }</style></head><body>${selectedMail.body}</body></html>`}
                                         style={{ width: '100%', height: '100%', border: 'none' }}
                                     />
@@ -729,11 +763,11 @@ export default function Dashboard() {
                                     </div>
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                         {selectedMail.attachments.map((att: any, idx: number) => (
-                                            <a key={idx} href={`${process.env.NEXT_PUBLIC_API_URL}/api/mails/${selectedMail.uid}/attachments/${encodeURIComponent(att.filename)}?folder=${encodeURIComponent(selectedFolder)}&token=${encodeURIComponent(sessionStorage.getItem('softigo_token') || '')}`} target="_blank" rel="noopener noreferrer" onClick={(e) => { if (!confirm(`"${att.filename}" dosyasını indirmek istiyor musunuz?`)) e.preventDefault(); }} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', backgroundColor: 'white', border: '1px solid #E2E8F0', borderRadius: '8px', textDecoration: 'none', color: '#1E293B', flex: '1 1 auto', minWidth: '120px' }}>
+                                            <button key={idx} type="button" onClick={() => handleAttachmentDownload(selectedMail.uid, att.filename)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', backgroundColor: 'white', border: '1px solid #E2E8F0', borderRadius: '8px', textAlign: 'left', cursor: 'pointer', color: '#1E293B', flex: '1 1 auto', minWidth: '120px' }}>
                                                 <FileText size={16} style={{ color: colors.accent, flexShrink: 0 }} />
                                                 <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontSize: '13px', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{att.filename}</div><div style={{ fontSize: '11px', color: '#64748B' }}>{(att.size / 1024).toFixed(1)} KB</div></div>
                                                 <Download size={14} style={{ color: '#94A3B8', flexShrink: 0 }} />
-                                            </a>
+                                            </button>
                                         ))}
                                     </div>
                                 </div>
@@ -966,7 +1000,10 @@ export default function Dashboard() {
                                         {selectedMail.loading ? (
                                             <div style={{ textAlign: 'center', padding: '40px', color: colors.subtext }}>Yükleniyor...</div>
                                         ) : (
+                                            {/* sandbox ZORUNLU: bkz. yukarıdaki okuyucu. */}
                                             <iframe
+                                                sandbox="allow-popups allow-popups-to-escape-sandbox"
+                                                referrerPolicy="no-referrer"
                                                 srcDoc={`<html><head><style>body { font-family: 'Inter', system-ui, sans-serif; line-height: 1.6; color: ${colors.text}; margin: 0; padding: 12px; background: transparent; } img { max-width: 100%; height: auto; } a { color: ${colors.accent}; }</style></head><body>${selectedMail.body}</body></html>`}
                                                 style={{ width: '100%', height: 'calc(100% - 0px)', border: 'none', borderRadius: '6px', backgroundColor: 'transparent' }}
                                             />
@@ -980,11 +1017,11 @@ export default function Dashboard() {
                                             </div>
                                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                                                 {selectedMail.attachments.map((att: any, idx: number) => (
-                                                    <a key={idx} href={`${process.env.NEXT_PUBLIC_API_URL}/api/mails/${selectedMail.uid}/attachments/${encodeURIComponent(att.filename)}?folder=${encodeURIComponent(selectedFolder)}&token=${encodeURIComponent(sessionStorage.getItem('softigo_token') || '')}`} target="_blank" rel="noopener noreferrer" onClick={(e) => { if (!confirm(`"${att.filename}" dosyasını indirmek istiyor musunuz?`)) e.preventDefault(); }} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 10px', backgroundColor: 'rgba(255,140,0,0.1)', border: `1px solid ${colors.accent}44`, borderRadius: '6px', textDecoration: 'none', color: colors.text }}>
+                                                    <button key={idx} type="button" onClick={() => handleAttachmentDownload(selectedMail.uid, att.filename)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 10px', backgroundColor: 'rgba(255,140,0,0.1)', border: `1px solid ${colors.accent}44`, borderRadius: '6px', textAlign: 'left', cursor: 'pointer', color: colors.text }}>
                                                         <FileText size={14} style={{ color: colors.accent }} />
                                                         <div><div style={{ fontSize: '12px', fontWeight: 500, maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{att.filename}</div><div style={{ fontSize: '10px', color: colors.subtext }}>{(att.size / 1024).toFixed(1)} KB</div></div>
                                                         <Download size={13} style={{ color: colors.subtext }} />
-                                                    </a>
+                                                    </button>
                                                 ))}
                                             </div>
                                         </div>
