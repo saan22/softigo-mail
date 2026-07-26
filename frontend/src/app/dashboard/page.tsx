@@ -745,8 +745,8 @@ export default function Dashboard() {
                                 {selectedMail.loading ? (
                                     <div style={{ textAlign: 'center', padding: '40px' }}>Yükleniyor...</div>
                                 ) : (
-                                    {/* sandbox ZORUNLU: mail içeriği güvenilmez. Sandbox olmadan srcDoc
-                                        ana sayfayla aynı origin'de çalışır ve oturum bilgisini okuyabilir. */}
+                                    // sandbox ZORUNLU: mail içeriği güvenilmez. Sandbox olmadan srcDoc
+                                    // ana sayfayla aynı origin'de çalışır ve oturum bilgisini okuyabilir.
                                     <iframe
                                         sandbox="allow-popups allow-popups-to-escape-sandbox"
                                         referrerPolicy="no-referrer"
@@ -1000,7 +1000,7 @@ export default function Dashboard() {
                                         {selectedMail.loading ? (
                                             <div style={{ textAlign: 'center', padding: '40px', color: colors.subtext }}>Yükleniyor...</div>
                                         ) : (
-                                            {/* sandbox ZORUNLU: bkz. yukarıdaki okuyucu. */}
+                                            // sandbox ZORUNLU: bkz. yukarıdaki okuyucu.
                                             <iframe
                                                 sandbox="allow-popups allow-popups-to-escape-sandbox"
                                                 referrerPolicy="no-referrer"
